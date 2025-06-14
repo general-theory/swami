@@ -4,7 +4,7 @@ import { prisma } from '../../../../lib/db/prisma';
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth();
@@ -23,6 +23,7 @@ export async function PUT(
 
     const data = await request.json();
     const { leagueId, seasonId, userId: participantId, active, balance } = data;
+    const { id } = await params;
 
     // Check if the new combination would create a duplicate
     const existingParticipation = await prisma.userParticipation.findFirst({
@@ -30,7 +31,7 @@ export async function PUT(
         leagueId,
         seasonId,
         userId: participantId,
-        id: { not: parseInt(params.id) },
+        id: { not: parseInt(id) },
       },
     });
 
@@ -43,7 +44,7 @@ export async function PUT(
 
     const updatedParticipation = await prisma.userParticipation.update({
       where: {
-        id: parseInt(params.id),
+        id: parseInt(id),
       },
       data: {
         leagueId,
@@ -86,7 +87,7 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth();
@@ -103,9 +104,11 @@ export async function DELETE(
       return new NextResponse('Forbidden', { status: 403 });
     }
 
+    const { id } = await params;
+
     await prisma.userParticipation.delete({
       where: {
-        id: parseInt(params.id),
+        id: parseInt(id),
       },
     });
 

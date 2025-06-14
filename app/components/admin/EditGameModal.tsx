@@ -1,70 +1,12 @@
 'use client';
 import { useState, useEffect } from 'react';
-
-interface Season {
-  id: number;
-  name: string;
-  year: number;
-}
-
-interface Week {
-  id: number;
-  week: number;
-  seasonId: number;
-}
-
-interface Team {
-  id: string;
-  name: string;
-  abbreviation: string;
-}
+import { Game, GameFormData, Season, Week, Team } from '../../types/game';
 
 interface EditGameModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (game: Game) => void;
   game: Game;
-}
-
-interface Game {
-  id: number;
-  seasonId: number;
-  seasonName: string;
-  weekId: number;
-  weekNumber: number;
-  startDate: string;
-  completed: boolean;
-  neutralSite: boolean;
-  homeId: string;
-  homeTeam: string;
-  homePoints: number | null;
-  spread: number | null;
-  startingSpread: number | null;
-  awayId: string;
-  awayTeam: string;
-  awayPoints: number | null;
-  resultId: string | null;
-  resultTeam: string | null;
-  venue: string;
-  providerGameId: number | null;
-}
-
-interface GameFormData {
-  id?: number;
-  providerGameId: number | null;
-  seasonId: number;
-  weekId: number;
-  startDate: string;
-  completed: boolean;
-  neutralSite: boolean;
-  homeId: string;
-  homePoints: number | null;
-  spread: number | null;
-  startingSpread: number | null;
-  awayId: string;
-  awayPoints: number | null;
-  resultId: string | null;
-  venue: string;
 }
 
 export default function EditGameModal({ game, isOpen, onClose, onSave }: EditGameModalProps) {

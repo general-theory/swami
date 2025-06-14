@@ -24,6 +24,7 @@ interface Participation {
     firstName: string;
     lastName: string;
   };
+  [key: string]: unknown;
 }
 
 export default function ParticipationsAdmin() {

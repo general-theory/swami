@@ -6,6 +6,7 @@ interface League {
   name: string;
   description: string;
   active: boolean;
+  [key: string]: unknown;
 }
 
 interface EditLeagueModalProps {

@@ -40,6 +40,7 @@ interface Participation {
     lastName: string;
     email: string;
   };
+  [key: string]: unknown;
 }
 
 interface EditParticipationModalProps {

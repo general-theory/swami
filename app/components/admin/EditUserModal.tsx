@@ -8,6 +8,7 @@ interface User {
   lastName: string;
   nickName: string;
   admin: boolean;
+  [key: string]: unknown;
 }
 
 interface EditUserModalProps {

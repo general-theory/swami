@@ -16,6 +16,7 @@ interface Week {
   wagersCutoff: string;
   active: boolean;
   activeSync: boolean;
+  [key: string]: unknown;
 }
 
 export default function WeeksAdmin() {
@@ -94,7 +95,8 @@ export default function WeeksAdmin() {
     }
   };
 
-  const handleCreateSave = async (newWeek: Week) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleCreateSave = async (newWeek: any) => {
     try {
       const response = await fetch('/api/admin/weeks', {
         method: 'POST',

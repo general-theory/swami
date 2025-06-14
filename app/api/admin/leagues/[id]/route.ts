@@ -4,7 +4,7 @@ import { prisma } from '../../../../lib/db/prisma';
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth();
@@ -23,9 +23,10 @@ export async function PUT(
 
     const data = await request.json();
     const { name, description, active } = data;
+    const { id } = await params;
 
     const updatedLeague = await prisma.league.update({
-      where: { id: parseInt(params.id) },
+      where: { id: parseInt(id) },
       data: {
         name,
         description,
@@ -45,7 +46,7 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth();
@@ -62,8 +63,10 @@ export async function DELETE(
       return new NextResponse('Forbidden', { status: 403 });
     }
 
+    const { id } = await params;
+
     await prisma.league.delete({
-      where: { id: parseInt(params.id) },
+      where: { id: parseInt(id) },
     });
 
     return new NextResponse(null, { status: 204 });

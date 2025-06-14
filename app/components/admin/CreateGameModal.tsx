@@ -1,63 +1,11 @@
 'use client';
 import { useEffect, useState } from 'react';
-
-interface Week {
-  id: number;
-  week: number;
-  seasonId: number;
-}
-
-interface Season {
-  id: number;
-  name: string;
-  year: number;
-}
-
-interface Team {
-  id: string;
-  name: string;
-  mascot: string;
-}
-
-interface Game {
-  id?: number;
-  providerGameId: number | null;
-  seasonId: number;
-  weekId: number;
-  startDate: string;
-  completed: boolean;
-  neutralSite: boolean;
-  homeId: string;
-  homePoints: number | null;
-  spread: number | null;
-  startingSpread: number | null;
-  awayId: string;
-  awayPoints: number | null;
-  resultId: string | null;
-  venue: string;
-}
-
-interface GameFormData {
-  providerGameId: number | null;
-  seasonId: number;
-  weekId: number;
-  startDate: string;
-  completed: boolean;
-  neutralSite: boolean;
-  homeId: string;
-  homePoints: number | null;
-  spread: number | null;
-  startingSpread: number | null;
-  awayId: string;
-  awayPoints: number | null;
-  resultId: string | null;
-  venue: string;
-}
+import { GameCreateData, GameFormData, Season, Week, Team } from '../../types/game';
 
 interface CreateGameModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (game: Game) => void;
+  onSave: (game: GameCreateData) => void;
 }
 
 export default function CreateGameModal({ isOpen, onClose, onSave }: CreateGameModalProps) {

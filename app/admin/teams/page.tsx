@@ -14,6 +14,7 @@ interface Team {
   abbreviation: string;
   division: string;
   logo: string;
+  [key: string]: unknown;
 }
 
 export default function TeamsAdmin() {

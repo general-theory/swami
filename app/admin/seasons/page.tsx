@@ -10,6 +10,7 @@ interface Season {
   name: string;
   year: number;
   active: boolean;
+  [key: string]: unknown;
 }
 
 export default function SeasonsAdmin() {

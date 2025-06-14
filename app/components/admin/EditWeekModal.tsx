@@ -25,6 +25,7 @@ interface Week {
   wagersCutoff: string;
   active: boolean;
   activeSync: boolean;
+  [key: string]: unknown;
 }
 
 export default function EditWeekModal({ week, isOpen, onClose, onSave }: EditWeekModalProps) {

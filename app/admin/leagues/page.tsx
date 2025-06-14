@@ -10,6 +10,7 @@ interface League {
   name: string;
   description: string;
   active: boolean;
+  [key: string]: unknown;
 }
 
 export default function LeaguesAdmin() {
@@ -88,7 +89,7 @@ export default function LeaguesAdmin() {
     }
   };
 
-  const handleCreateSave = async (newLeague: League) => {
+  const handleCreateSave = async (newLeague: { name: string; description: string; active: boolean }) => {
     try {
       const response = await fetch('/api/admin/leagues', {
         method: 'POST',

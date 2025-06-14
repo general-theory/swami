@@ -4,29 +4,7 @@ import { useRouter } from 'next/navigation';
 import DataTable from '../../components/admin/DataTable';
 import EditGameModal from '../../components/admin/EditGameModal';
 import CreateGameModal from '../../components/admin/CreateGameModal';
-
-interface Game {
-  id: number;
-  providerGameId: number | null;
-  seasonId: number;
-  seasonName: string;
-  weekId: number;
-  weekNumber: number;
-  startDate: string;
-  completed: boolean;
-  neutralSite: boolean;
-  homeId: string;
-  homeTeam: string;
-  homePoints: number | null;
-  spread: number | null;
-  startingSpread: number | null;
-  awayId: string;
-  awayTeam: string;
-  awayPoints: number | null;
-  resultId: string | null;
-  resultTeam: string | null;
-  venue: string;
-}
+import { Game, GameCreateData } from '../../types/game';
 
 export default function GamesAdmin() {
   const router = useRouter();
@@ -104,7 +82,7 @@ export default function GamesAdmin() {
     }
   };
 
-  const handleCreateSave = async (newGame: Game) => {
+  const handleCreateSave = async (newGame: GameCreateData) => {
     try {
       const response = await fetch('/api/admin/games', {
         method: 'POST',

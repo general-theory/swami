@@ -10,6 +10,7 @@ interface Team {
   abbreviation: string;
   division: string;
   logo: string;
+  [key: string]: unknown;
 }
 
 interface EditTeamModalProps {

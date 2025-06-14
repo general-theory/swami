@@ -4,7 +4,7 @@ import { prisma } from '../../../../lib/db/prisma';
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth();
@@ -23,9 +23,10 @@ export async function PUT(
 
     const data = await request.json();
     const { seasonId, week, startDate, endDate, wagersAllowed, wagersCutoff, active, activeSync } = data;
+    const { id } = await params;
 
     const updatedWeek = await prisma.week.update({
-      where: { id: parseInt(params.id) },
+      where: { id: parseInt(id) },
       data: {
         seasonId: parseInt(seasonId),
         week: parseInt(week),
@@ -66,7 +67,7 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth();
@@ -83,8 +84,10 @@ export async function DELETE(
       return new NextResponse('Forbidden', { status: 403 });
     }
 
+    const { id } = await params;
+
     await prisma.week.delete({
-      where: { id: parseInt(params.id) },
+      where: { id: parseInt(id) },
     });
 
     return new NextResponse(null, { status: 204 });
