@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '../../../../lib/db/prisma';
+import { Prisma } from '@prisma/client';
 
 export async function PUT(
   request: Request,
@@ -58,7 +59,7 @@ export async function PUT(
         awayPoints,
         resultId,
         venue
-      }
+      } as Prisma.GameUpdateInput
     });
 
     return NextResponse.json(game);

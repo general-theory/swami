@@ -24,7 +24,7 @@ export async function GET() {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST() {
   try {
     const { userId } = await auth();
     if (!userId) {

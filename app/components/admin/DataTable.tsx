@@ -6,17 +6,17 @@ interface Column {
   accessor: string;
 }
 
-interface DataTableProps {
+interface DataTableProps<T> {
   columns: Column[];
-  data: any[];
-  onEdit: (item: any) => void;
-  onDelete: (item: any) => void;
+  data: T[];
+  onEdit: (item: T) => void;
+  onDelete: (item: T) => void;
   isDeleteModalOpen: boolean;
   onDeleteConfirm: () => void;
   onDeleteCancel: () => void;
 }
 
-export default function DataTable({
+export default function DataTable<T extends Record<string, unknown>>({
   columns,
   data,
   onEdit,
@@ -24,21 +24,32 @@ export default function DataTable({
   isDeleteModalOpen,
   onDeleteConfirm,
   onDeleteCancel,
-}: DataTableProps) {
+}: DataTableProps<T>) {
   const [sortConfig, setSortConfig] = useState<{
     key: string;
     direction: 'asc' | 'desc';
   } | null>(null);
 
-  const getNestedValue = (obj: any, path: string) => {
-    return path.split('.').reduce((acc, part) => acc && acc[part], obj);
+  const getNestedValue = (obj: Record<string, unknown>, path: string): unknown => {
+    const parts = path.split('.');
+    let current: unknown = obj;
+    
+    for (const part of parts) {
+      if (current && typeof current === 'object') {
+        current = (current as Record<string, unknown>)[part];
+      } else {
+        return undefined;
+      }
+    }
+    
+    return current;
   };
 
-  const formatValue = (value: any) => {
+  const formatValue = (value: unknown): string => {
     if (typeof value === 'boolean') {
       return value ? 'Yes' : 'No';
     }
-    return value;
+    return String(value ?? '');
   };
 
   const sortedData = [...data].sort((a, b) => {
@@ -51,7 +62,7 @@ export default function DataTable({
     if (aValue === null || aValue === undefined) return 1;
     if (bValue === null || bValue === undefined) return -1;
 
-    const comparison = aValue < bValue ? -1 : 1;
+    const comparison = String(aValue) < String(bValue) ? -1 : 1;
     return sortConfig.direction === 'asc' ? comparison : -comparison;
   });
 

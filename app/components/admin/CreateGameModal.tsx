@@ -14,13 +14,27 @@ interface Season {
 }
 
 interface Team {
-  id: number;
+  id: string;
   name: string;
   mascot: string;
 }
 
 interface Game {
-  // Add necessary properties for the Game interface
+  id?: number;
+  providerGameId: number | null;
+  seasonId: number;
+  weekId: number;
+  startDate: string;
+  completed: boolean;
+  neutralSite: boolean;
+  homeId: string;
+  homePoints: number | null;
+  spread: number | null;
+  startingSpread: number | null;
+  awayId: string;
+  awayPoints: number | null;
+  resultId: string | null;
+  venue: string;
 }
 
 interface GameFormData {
