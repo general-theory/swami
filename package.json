@@ -2,7 +2,7 @@
   "name": "swami",
   "engines": {
     "node": "22.16"
-  }
+  },
   "version": "0.1.0",
   "private": true,
   "scripts": {
