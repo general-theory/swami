@@ -104,6 +104,7 @@ model Week {
 
 model Game {
   id            Int      @id @default(autoincrement())
+  providerGameId Int?    @unique
   season        Season   @relation(fields: [seasonId], references: [id])
   seasonId      Int
   week          Week     @relation(fields: [weekId], references: [id])

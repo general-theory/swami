@@ -23,6 +23,23 @@ interface Game {
   // Add necessary properties for the Game interface
 }
 
+interface GameFormData {
+  providerGameId: number | null;
+  seasonId: number;
+  weekId: number;
+  startDate: string;
+  completed: boolean;
+  neutralSite: boolean;
+  homeId: string;
+  homePoints: number | null;
+  spread: number | null;
+  startingSpread: number | null;
+  awayId: string;
+  awayPoints: number | null;
+  resultId: string | null;
+  venue: string;
+}
+
 interface CreateGameModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -34,21 +51,21 @@ export default function CreateGameModal({ isOpen, onClose, onSave }: CreateGameM
   const [weeks, setWeeks] = useState<Week[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [selectedSeasonId, setSelectedSeasonId] = useState<number | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<GameFormData>({
+    providerGameId: null,
     seasonId: 0,
     weekId: 0,
     startDate: '',
     completed: false,
     neutralSite: false,
-    homeId: 0,
-    awayId: 0,
-    resultId: 0,
-    homePoints: 0,
-    awayPoints: 0,
-    spread: 0,
-    startingSpread: 0,
+    homeId: '',
+    homePoints: null,
+    spread: null,
+    startingSpread: null,
+    awayId: '',
+    awayPoints: null,
+    resultId: null,
     venue: '',
-    active: true
   });
 
   useEffect(() => {
@@ -107,10 +124,17 @@ export default function CreateGameModal({ isOpen, onClose, onSave }: CreateGameM
       }
     }
     
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+    if (name === 'homePoints' || name === 'awayPoints' || name === 'spread' || name === 'startingSpread' || name === 'providerGameId') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value === '' ? null : Number(value)
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: type === 'checkbox' ? checked : value
+      }));
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -135,22 +159,39 @@ export default function CreateGameModal({ isOpen, onClose, onSave }: CreateGameM
       <div className="bg-gray-800 p-6 rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl font-bold mb-4 text-white">Create Game</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-300">Season</label>
-            <select
-              name="seasonId"
-              value={formData.seasonId}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border border-gray-600 bg-gray-700 px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
-              required
-            >
-              <option value="">Select a season</option>
-              {seasons.map((season) => (
-                <option key={season.id} value={season.id}>
-                  {season.name} ({season.year})
-                </option>
-              ))}
-            </select>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Provider Game ID</span>
+              </label>
+              <input
+                type="number"
+                name="providerGameId"
+                value={formData.providerGameId === null ? '' : formData.providerGameId}
+                onChange={handleChange}
+                className="input input-bordered"
+                placeholder="Provider Game ID"
+              />
+            </div>
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Season</span>
+              </label>
+              <select
+                name="seasonId"
+                value={formData.seasonId}
+                onChange={handleChange}
+                className="select select-bordered"
+                required
+              >
+                <option value="">Select Season</option>
+                {seasons.map(season => (
+                  <option key={season.id} value={season.id}>
+                    {season.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-300">Week</label>
@@ -223,7 +264,7 @@ export default function CreateGameModal({ isOpen, onClose, onSave }: CreateGameM
             <input
               type="number"
               name="homePoints"
-              value={formData.homePoints}
+              value={formData.homePoints ?? ''}
               onChange={handleChange}
               className="mt-1 block w-full rounded-md border border-gray-600 bg-gray-700 px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
               min="0"
@@ -235,7 +276,7 @@ export default function CreateGameModal({ isOpen, onClose, onSave }: CreateGameM
               type="number"
               name="spread"
               step="0.5"
-              value={formData.spread}
+              value={formData.spread ?? ''}
               onChange={handleChange}
               className="mt-1 block w-full rounded-md border border-gray-600 bg-gray-700 px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
             />
@@ -246,7 +287,7 @@ export default function CreateGameModal({ isOpen, onClose, onSave }: CreateGameM
               type="number"
               name="startingSpread"
               step="0.5"
-              value={formData.startingSpread}
+              value={formData.startingSpread ?? ''}
               onChange={handleChange}
               className="mt-1 block w-full rounded-md border border-gray-600 bg-gray-700 px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
             />
@@ -273,7 +314,7 @@ export default function CreateGameModal({ isOpen, onClose, onSave }: CreateGameM
             <input
               type="number"
               name="awayPoints"
-              value={formData.awayPoints}
+              value={formData.awayPoints ?? ''}
               onChange={handleChange}
               className="mt-1 block w-full rounded-md border border-gray-600 bg-gray-700 px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
               min="0"
@@ -283,7 +324,7 @@ export default function CreateGameModal({ isOpen, onClose, onSave }: CreateGameM
             <label className="block text-sm font-medium text-gray-300">Result ID</label>
             <select
               name="resultId"
-              value={formData.resultId}
+              value={formData.resultId === null ? '' : formData.resultId}
               onChange={handleChange}
               className="mt-1 block w-full rounded-md border border-gray-600 bg-gray-700 px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
             >

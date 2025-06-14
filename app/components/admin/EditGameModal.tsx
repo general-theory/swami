@@ -46,15 +46,47 @@ interface Game {
   resultId: string | null;
   resultTeam: string | null;
   venue: string;
+  providerGameId: number | null;
+}
+
+interface GameFormData {
+  id?: number;
+  providerGameId: number | null;
+  seasonId: number;
+  weekId: number;
+  startDate: string;
+  completed: boolean;
+  neutralSite: boolean;
+  homeId: string;
+  homePoints: number | null;
+  spread: number | null;
+  startingSpread: number | null;
+  awayId: string;
+  awayPoints: number | null;
+  resultId: string | null;
+  venue: string;
 }
 
 export default function EditGameModal({ game, isOpen, onClose, onSave }: EditGameModalProps) {
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [weeks, setWeeks] = useState<Week[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
-  const [formData, setFormData] = useState<Game>({
-    ...game,
-    startDate: new Date(game.startDate).toISOString().slice(0, 16)
+  const [formData, setFormData] = useState<GameFormData>({
+    id: game?.id,
+    providerGameId: game?.providerGameId ?? null,
+    seasonId: game?.seasonId ?? 0,
+    weekId: game?.weekId ?? 0,
+    startDate: game?.startDate ?? '',
+    completed: game?.completed ?? false,
+    neutralSite: game?.neutralSite ?? false,
+    homeId: game?.homeId ?? '',
+    homePoints: game?.homePoints ?? null,
+    spread: game?.spread ?? null,
+    startingSpread: game?.startingSpread ?? null,
+    awayId: game?.awayId ?? '',
+    awayPoints: game?.awayPoints ?? null,
+    resultId: game?.resultId ?? null,
+    venue: game?.venue ?? '',
   });
 
   useEffect(() => {
@@ -109,18 +141,24 @@ export default function EditGameModal({ game, isOpen, onClose, onSave }: EditGam
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    onSave(formData as Game);
     onClose();
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
-    const checked = (e.target as HTMLInputElement).checked;
+    const { name, value } = e.target;
     
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+    if (name === 'homePoints' || name === 'awayPoints' || name === 'spread' || name === 'startingSpread' || name === 'providerGameId') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value === '' ? null : Number(value)
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   return (
@@ -128,22 +166,39 @@ export default function EditGameModal({ game, isOpen, onClose, onSave }: EditGam
       <div className="bg-gray-800 p-6 rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl font-bold mb-4 text-white">Edit Game</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-300">Season</label>
-            <select
-              name="seasonId"
-              value={formData.seasonId}
-              onChange={handleChange}
-              required
-              className="mt-1 block w-full rounded-md border border-gray-600 bg-gray-700 px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
-            >
-              <option value="">Select a season</option>
-              {seasons.map(season => (
-                <option key={season.id} value={season.id}>
-                  {season.name} ({season.year})
-                </option>
-              ))}
-            </select>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Provider Game ID</span>
+              </label>
+              <input
+                type="number"
+                name="providerGameId"
+                value={formData.providerGameId ?? ''}
+                onChange={handleChange}
+                className="input input-bordered"
+                placeholder="Provider Game ID"
+              />
+            </div>
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Season</span>
+              </label>
+              <select
+                name="seasonId"
+                value={formData.seasonId}
+                onChange={handleChange}
+                className="select select-bordered"
+                required
+              >
+                <option value="">Select Season</option>
+                {seasons.map(season => (
+                  <option key={season.id} value={season.id}>
+                    {season.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-300">Week</label>
@@ -234,7 +289,6 @@ export default function EditGameModal({ game, isOpen, onClose, onSave }: EditGam
               name="venue"
               value={formData.venue}
               onChange={handleChange}
-              required
               className="mt-1 block w-full rounded-md border border-gray-600 bg-gray-700 px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
             />
           </div>

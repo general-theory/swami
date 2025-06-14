@@ -53,6 +53,7 @@ export async function GET() {
 
     const formattedGames = games.map(game => ({
       id: game.id,
+      providerGameId: game.providerGameId,
       seasonId: game.seasonId,
       seasonName: game.season.name,
       weekId: game.weekId,
@@ -98,6 +99,7 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     const {
+      providerGameId,
       seasonId,
       weekId,
       startDate,
@@ -115,6 +117,7 @@ export async function POST(request: Request) {
 
     const game = await prisma.game.create({
       data: {
+        providerGameId: providerGameId ? Number(providerGameId) : null,
         seasonId,
         weekId,
         startDate: new Date(startDate),

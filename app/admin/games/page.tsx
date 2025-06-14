@@ -7,6 +7,7 @@ import CreateGameModal from '../../components/admin/CreateGameModal';
 
 interface Game {
   id: number;
+  providerGameId: number | null;
   seasonId: number;
   seasonName: string;
   weekId: number;
@@ -144,11 +145,16 @@ export default function GamesAdmin() {
   };
 
   const columns = [
+    { header: 'Provider ID', accessor: 'providerGameId' },
     { header: 'Season', accessor: 'seasonName' },
     { header: 'Week', accessor: 'weekNumber' },
     { header: 'Start Date', accessor: 'startDate' },
     { header: 'Home Team', accessor: 'homeTeam' },
+    { header: 'Home Points', accessor: 'homePoints' },
+    { header: 'Spread', accessor: 'spread' },
+    { header: 'Opening Spread', accessor: 'startingSpread' },
     { header: 'Away Team', accessor: 'awayTeam' },
+    { header: 'Away Points', accessor: 'awayPoints' },
     { header: 'Venue', accessor: 'venue' },
     { header: 'Completed', accessor: 'completed' },
     { header: 'Neutral Site', accessor: 'neutralSite' },
