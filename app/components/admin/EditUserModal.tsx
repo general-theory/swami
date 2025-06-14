@@ -8,6 +8,7 @@ interface User {
   lastName: string;
   nickName: string;
   admin: boolean;
+  clerkId: string;
   [key: string]: unknown;
 }
 
@@ -74,6 +75,16 @@ export default function EditUserModal({ user, isOpen, onClose, onSave }: EditUse
               value={editedUser.nickName}
               onChange={(e) => setEditedUser({ ...editedUser, nickName: e.target.value })}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Clerk ID</label>
+            <input
+              type="text"
+              value={editedUser.clerkId}
+              onChange={(e) => setEditedUser({ ...editedUser, clerkId: e.target.value })}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              required
             />
           </div>
           <div className="flex items-center">

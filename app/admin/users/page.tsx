@@ -12,6 +12,7 @@ interface User {
   lastName: string;
   nickName: string;
   admin: boolean;
+  clerkId: string;
   [key: string]: unknown;
 }
 
@@ -92,7 +93,7 @@ export default function UsersAdmin() {
     }
   };
 
-  const handleCreateSave = async (newUser: { email: string; firstName: string; lastName: string; nickName: string; admin: boolean }) => {
+  const handleCreateSave = async (newUser: { email: string; firstName: string; lastName: string; nickName: string; admin: boolean; clerkId: string }) => {
     try {
       const response = await fetch('/api/admin/users', {
         method: 'POST',
@@ -140,6 +141,7 @@ export default function UsersAdmin() {
     { header: 'Last Name', accessor: 'lastName' },
     { header: 'Nickname', accessor: 'nickName' },
     { header: 'Admin', accessor: 'admin' },
+    { header: 'Clerk ID', accessor: 'clerkId' },
   ];
 
   return (
