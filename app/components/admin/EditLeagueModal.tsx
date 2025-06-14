@@ -9,10 +9,10 @@ interface League {
 }
 
 interface EditLeagueModalProps {
-  league: League | null;
   isOpen: boolean;
   onClose: () => void;
   onSave: (league: League) => void;
+  league: League;
 }
 
 export default function EditLeagueModal({ league, isOpen, onClose, onSave }: EditLeagueModalProps) {

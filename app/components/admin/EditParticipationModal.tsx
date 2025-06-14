@@ -43,10 +43,10 @@ interface Participation {
 }
 
 interface EditParticipationModalProps {
-  participation: Participation;
   isOpen: boolean;
   onClose: () => void;
   onSave: (participation: Participation) => void;
+  participation: Participation;
 }
 
 export default function EditParticipationModal({

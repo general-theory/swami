@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '../../lib/db/prisma';
 import { calculateBetLimits } from '../../lib/db/participation';
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const { userId } = await auth();
     if (!userId) {

@@ -1,17 +1,25 @@
 'use client';
 import { useState } from 'react';
 
-interface Column {
-  header: string;
-  accessor: string;
+interface Standing {
+  userId: string;
+  firstName: string;
+  lastName: string;
+  nickName: string;
+  totalPoints: number;
+  wins: number;
+  losses: number;
+  pushes: number;
+  winPercentage: number;
 }
 
 interface StandingsTableProps {
-  columns: Column[];
-  data: any[];
+  standings: Standing[];
+  onEdit: (standing: Standing) => void;
+  onDelete: (standing: Standing) => void;
 }
 
-export default function StandingsTable({ columns, data }: StandingsTableProps) {
+export default function StandingsTable({ standings, onEdit, onDelete }: StandingsTableProps) {
   const [sortConfig, setSortConfig] = useState<{
     key: string;
     direction: 'asc' | 'desc';
@@ -38,7 +46,7 @@ export default function StandingsTable({ columns, data }: StandingsTableProps) {
     return value;
   };
 
-  const sortedData = [...data].sort((a, b) => {
+  const sortedData = [...standings].sort((a, b) => {
     if (!sortConfig) return 0;
 
     const aValue = getNestedValue(a, sortConfig.key);
@@ -65,14 +73,14 @@ export default function StandingsTable({ columns, data }: StandingsTableProps) {
       <table className="min-w-full bg-white rounded-lg overflow-hidden">
         <thead className="bg-gray-100">
           <tr>
-            {columns.map((column) => (
+            {standings.map((standing) => (
               <th
-                key={column.accessor}
+                key={standing.userId}
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200"
-                onClick={() => requestSort(column.accessor)}
+                onClick={() => requestSort(standing.userId)}
               >
-                {column.header}
-                {sortConfig?.key === column.accessor && (
+                {standing.firstName} {standing.lastName}
+                {sortConfig?.key === standing.userId && (
                   <span className="ml-1">
                     {sortConfig.direction === 'asc' ? '↑' : '↓'}
                   </span>
@@ -82,18 +90,32 @@ export default function StandingsTable({ columns, data }: StandingsTableProps) {
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-200">
-          {sortedData.map((item, index) => (
-            <tr key={index} className="hover:bg-gray-50">
-              {columns.map((column) => (
-                <td key={column.accessor} className="px-6 py-4 whitespace-nowrap">
+          {sortedData.map((standing, index) => (
+            <tr key={standing.userId} className="hover:bg-gray-50">
+              {standings.map((column) => (
+                <td key={column.userId} className="px-6 py-4 whitespace-nowrap">
                   {formatValue(
-                    column.accessor.includes('.')
-                      ? getNestedValue(item, column.accessor)
-                      : item[column.accessor],
-                    column.accessor
+                    column.userId.includes('.')
+                      ? getNestedValue(standing, column.userId)
+                      : standing[column.userId],
+                    column.userId
                   )}
                 </td>
               ))}
+              <td className="px-6 py-4 whitespace-nowrap">
+                <button
+                  onClick={() => onEdit(standing)}
+                  className="text-indigo-600 hover:text-indigo-900 mr-2"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => onDelete(standing)}
+                  className="text-red-600 hover:text-red-900"
+                >
+                  Delete
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>

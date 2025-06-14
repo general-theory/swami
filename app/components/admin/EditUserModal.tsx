@@ -11,10 +11,10 @@ interface User {
 }
 
 interface EditUserModalProps {
-  user: User;
   isOpen: boolean;
   onClose: () => void;
   onSave: (user: User) => void;
+  user: User;
 }
 
 export default function EditUserModal({ user, isOpen, onClose, onSave }: EditUserModalProps) {

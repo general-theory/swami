@@ -13,10 +13,10 @@ interface Team {
 }
 
 interface EditTeamModalProps {
-  team: Team;
   isOpen: boolean;
   onClose: () => void;
   onSave: (team: Team) => void;
+  team: Team;
 }
 
 export default function EditTeamModal({ team, isOpen, onClose, onSave }: EditTeamModalProps) {

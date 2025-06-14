@@ -9,10 +9,10 @@ interface Season {
 }
 
 interface EditSeasonModalProps {
-  season: Season | null;
   isOpen: boolean;
   onClose: () => void;
   onSave: (season: Season) => void;
+  season: Season;
 }
 
 export default function EditSeasonModal({ season, isOpen, onClose, onSave }: EditSeasonModalProps) {

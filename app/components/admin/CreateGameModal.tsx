@@ -19,10 +19,14 @@ interface Team {
   mascot: string;
 }
 
+interface Game {
+  // Add necessary properties for the Game interface
+}
+
 interface CreateGameModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (game: any) => void;
+  onSave: (game: Game) => void;
 }
 
 export default function CreateGameModal({ isOpen, onClose, onSave }: CreateGameModalProps) {

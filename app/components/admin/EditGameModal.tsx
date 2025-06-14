@@ -20,10 +20,10 @@ interface Team {
 }
 
 interface EditGameModalProps {
-  game: Game;
   isOpen: boolean;
   onClose: () => void;
   onSave: (game: Game) => void;
+  game: Game;
 }
 
 interface Game {

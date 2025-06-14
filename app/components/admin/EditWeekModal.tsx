@@ -8,10 +8,10 @@ interface Season {
 }
 
 interface EditWeekModalProps {
-  week: Week;
   isOpen: boolean;
   onClose: () => void;
   onSave: (week: Week) => void;
+  week: Week;
 }
 
 interface Week {
