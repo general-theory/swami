@@ -2,6 +2,7 @@ import { ClerkProvider } from '@clerk/nextjs';
 import './globals.css';
 import Navbar from './components/Navbar';
 import { Inter } from 'next/font/google';
+import { Toaster } from './components/ui/toaster'
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -27,6 +28,7 @@ export default function RootLayout({
           <main className="container mx-auto px-4 py-8">
             {children}
           </main>
+          <Toaster />
         </body>
       </html>
     </ClerkProvider>
