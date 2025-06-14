@@ -136,6 +136,7 @@ export default function UsersAdmin() {
     { header: 'Email', accessor: 'email' },
     { header: 'First Name', accessor: 'firstName' },
     { header: 'Last Name', accessor: 'lastName' },
+    { header: 'Nickname', accessor: 'nickName' },
     { header: 'Admin', accessor: 'admin' },
   ];
 

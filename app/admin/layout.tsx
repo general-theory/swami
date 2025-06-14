@@ -39,11 +39,13 @@ export default function AdminLayout({
 
   const navItems = [
     { href: '/admin', label: 'Dashboard' },
-    { href: '/admin/teams', label: 'Teams' },
-    { href: '/admin/leagues', label: 'Leagues' },
-    { href: '/admin/seasons', label: 'Seasons' },
     { href: '/admin/users', label: 'Users' },
-    { href: '/admin/participations', label: 'Participations' },
+    { href: '/admin/seasons', label: 'Seasons' },
+    { href: '/admin/leagues', label: 'Leagues' },
+    { href: '/admin/games', label: 'Games' },
+    { href: '/admin/teams', label: 'Teams' },
+    { href: '/admin/weeks', label: 'Weeks' },
+    { href: '/admin/participations', label: 'Participations' }
   ];
 
   const isActive = (path: string) => {

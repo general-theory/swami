@@ -71,6 +71,25 @@ export default function TeamsAdmin() {
     setIsCreateModalOpen(true);
   };
 
+  const handleSync = async () => {
+    try {
+      const response = await fetch('/api/admin/teams/sync', {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to sync teams');
+      }
+
+      const result = await response.json();
+      alert(`Sync completed:\n${result.added} teams added\n${result.updated} teams updated`);
+      fetchTeams();
+    } catch (error) {
+      console.error('Error syncing teams:', error);
+      alert('Error syncing teams. Please try again.');
+    }
+  };
+
   const handleSave = async (updatedTeam: Team) => {
     try {
       const response = await fetch(`/api/admin/teams/${updatedTeam.id}`, {
@@ -144,12 +163,20 @@ export default function TeamsAdmin() {
     <div className="space-y-6">
       <h1 className="text-3xl font-bold">Manage Teams</h1>
       <div className="flex justify-between items-center mb-6">
-        <button
-          onClick={handleCreate}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          Create Team
-        </button>
+        <div className="space-x-4">
+          <button
+            onClick={handleCreate}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Create Team
+          </button>
+          <button
+            onClick={handleSync}
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+          >
+            Sync Data
+          </button>
+        </div>
       </div>
       <DataTable
         columns={columns}

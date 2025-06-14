@@ -27,6 +27,8 @@ model Season {
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  weeks       Week[]
+  games       Game[]
   participations UserParticipation[]
 }
 
@@ -72,9 +74,60 @@ model Team {
   logo        String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  homeGames   Game[]   @relation("HomeTeam")
+  awayGames   Game[]   @relation("AwayTeam")
+  resultGames Game[]   @relation("ResultTeam")
 
   @@index([providerId])
   @@index([name])
   @@index([conference])
   @@index([division])
+}
+
+model Week {
+  id            Int      @id @default(autoincrement())
+  season        Season   @relation(fields: [seasonId], references: [id])
+  seasonId      Int
+  week          Int
+  startDate     DateTime
+  endDate       DateTime
+  wagersAllowed Boolean  @default(false)
+  wagersCutoff  DateTime
+  active        Boolean  @default(false)
+  activeSync    Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  games         Game[]
+
+  @@index([seasonId])
+}
+
+model Game {
+  id            Int      @id @default(autoincrement())
+  season        Season   @relation(fields: [seasonId], references: [id])
+  seasonId      Int
+  week          Week     @relation(fields: [weekId], references: [id])
+  weekId        Int
+  startDate     DateTime
+  completed     Boolean  @default(false)
+  neutralSite   Boolean  @default(false)
+  homeTeam      Team     @relation("HomeTeam", fields: [homeId], references: [id])
+  homeId        String
+  homePoints    Int?
+  spread        Float?
+  startingSpread Float?
+  awayTeam      Team     @relation("AwayTeam", fields: [awayId], references: [id])
+  awayId        String
+  awayPoints    Int?
+  resultTeam    Team?    @relation("ResultTeam", fields: [resultId], references: [id])
+  resultId      String?
+  venue         String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([seasonId])
+  @@index([weekId])
+  @@index([homeId])
+  @@index([awayId])
+  @@index([resultId])
 }

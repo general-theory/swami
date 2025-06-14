@@ -15,6 +15,7 @@ export async function GET(request: Request) {
         email: true,
         firstName: true,
         lastName: true,
+        nickName: true,
         admin: true,
       },
     });
