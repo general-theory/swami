@@ -1,0 +1,34 @@
+import { ClerkProvider } from '@clerk/nextjs';
+import './globals.css';
+import Navbar from './components/Navbar';
+import { Inter } from 'next/font/google';
+
+const inter = Inter({ subsets: ['latin'] });
+
+export const metadata = {
+  title: 'Swami - Fantasy Football Oracle',
+  description: 'Your Fantasy Football Oracle',
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <ClerkProvider>
+      <html lang="en" data-theme="dark" className={inter.className}>
+        <head>
+          <meta charSet="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+        </head>
+        <body className="min-h-screen bg-base-200">
+          <Navbar />
+          <main className="container mx-auto px-4 py-8">
+            {children}
+          </main>
+        </body>
+      </html>
+    </ClerkProvider>
+  );
+} 

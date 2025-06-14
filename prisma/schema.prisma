@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  clerkId   String   @unique
+  email     String   @unique
+  firstName String
+  lastName  String
+  nickName  String?
+  admin     Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  participations UserParticipation[]
+}
+
+model Season {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  year        Int
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  participations UserParticipation[]
+}
+
+model League {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String   @db.Text
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  participations UserParticipation[]
+}
+
+model UserParticipation {
+  id        Int      @id @default(autoincrement())
+  league    League   @relation(fields: [leagueId], references: [id])
+  leagueId  Int
+  season    Season   @relation(fields: [seasonId], references: [id])
+  seasonId  Int
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  active    Boolean  @default(true)
+  balance   Float    @default(1000)
+  minBet    Float    @default(0)
+  maxBet    Float    @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([leagueId, seasonId, userId])
+  @@index([leagueId])
+  @@index([seasonId])
+  @@index([userId])
+}
+
+model Team {
+  id          String   @id @default(uuid())
+  providerId  String   @unique
+  name        String
+  conference  String
+  mascot      String
+  abbreviation String  @unique
+  division    String
+  logo        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([providerId])
+  @@index([name])
+  @@index([conference])
+  @@index([division])
+}

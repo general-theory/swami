@@ -1,0 +1,184 @@
+'use client';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import DataTable from '../../components/admin/DataTable';
+import EditTeamModal from '../../components/admin/EditTeamModal';
+import CreateTeamModal from '../../components/admin/CreateTeamModal';
+
+interface Team {
+  id: string;
+  providerId: string;
+  name: string;
+  conference: string;
+  mascot: string;
+  abbreviation: string;
+  division: string;
+  logo: string;
+}
+
+export default function TeamsAdmin() {
+  const router = useRouter();
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [teamToDelete, setTeamToDelete] = useState<Team | null>(null);
+
+  useEffect(() => {
+    const checkAdminAndFetchTeams = async () => {
+      try {
+        const response = await fetch('/api/user');
+        const userData = await response.json();
+        
+        if (!userData?.admin) {
+          router.push('/');
+          return;
+        }
+
+        fetchTeams();
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        router.push('/');
+      }
+    };
+
+    checkAdminAndFetchTeams();
+  }, [router]);
+
+  const fetchTeams = async () => {
+    try {
+      const response = await fetch('/api/admin/teams');
+      if (!response.ok) throw new Error('Failed to fetch teams');
+      const data = await response.json();
+      setTeams(data);
+    } catch (error) {
+      console.error('Error fetching teams:', error);
+    }
+  };
+
+  const handleEdit = (team: Team) => {
+    setSelectedTeam(team);
+    setIsEditModalOpen(true);
+  };
+
+  const handleDelete = (team: Team) => {
+    setTeamToDelete(team);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleCreate = () => {
+    setIsCreateModalOpen(true);
+  };
+
+  const handleSave = async (updatedTeam: Team) => {
+    try {
+      const response = await fetch(`/api/admin/teams/${updatedTeam.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedTeam),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update team');
+      }
+
+      await fetchTeams();
+      setIsEditModalOpen(false);
+    } catch (error) {
+      console.error('Error updating team:', error);
+    }
+  };
+
+  const handleCreateSave = async (newTeam: Omit<Team, 'id'>) => {
+    try {
+      const response = await fetch('/api/admin/teams', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newTeam),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create team');
+      }
+
+      await fetchTeams();
+      setIsCreateModalOpen(false);
+    } catch (error) {
+      console.error('Error creating team:', error);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!teamToDelete) return;
+    try {
+      const response = await fetch(`/api/admin/teams/${teamToDelete.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete team');
+      }
+
+      await fetchTeams();
+      setIsDeleteModalOpen(false);
+      setTeamToDelete(null);
+    } catch (error) {
+      console.error('Error deleting team:', error);
+    }
+  };
+
+  const columns = [
+    { header: 'Name', accessor: 'name' },
+    { header: 'Conference', accessor: 'conference' },
+    { header: 'Mascot', accessor: 'mascot' },
+    { header: 'Abbreviation', accessor: 'abbreviation' },
+    { header: 'Division', accessor: 'division' },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <h1 className="text-3xl font-bold">Manage Teams</h1>
+      <div className="flex justify-between items-center mb-6">
+        <button
+          onClick={handleCreate}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Create Team
+        </button>
+      </div>
+      <DataTable
+        columns={columns}
+        data={teams}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        isDeleteModalOpen={isDeleteModalOpen}
+        onDeleteConfirm={handleDeleteConfirm}
+        onDeleteCancel={() => {
+          setIsDeleteModalOpen(false);
+          setTeamToDelete(null);
+        }}
+      />
+      {selectedTeam && (
+        <EditTeamModal
+          team={selectedTeam}
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setSelectedTeam(null);
+          }}
+          onSave={handleSave}
+        />
+      )}
+      <CreateTeamModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSave={handleCreateSave}
+      />
+    </div>
+  );
+} 

@@ -1,0 +1,46 @@
+{
+  "technologies": [
+    "Next.js",
+    "TypeScript",
+    "Prisma",
+    "MySQL",
+    "Tailwind CSS",
+    "DaisyUI"
+  ],
+  "projectStyle": {
+    "componentStyle": "Functional components with hooks",
+    "stateManagement": "Use React useState/useEffect where appropriate",
+    "apiHandling": "Use Next.js API routes",
+    "styling": "Tailwind CSS utility classes with DaisyUI components"
+  },
+  "prisma": {
+    "useStrictTypes": true,
+    "preferModelUsage": true,
+    "avoidRawQueries": true
+  },
+  "tailwind": {
+    "useOnlyTailwindClasses": true,
+    "avoidInlineStyles": true
+  },
+  "typescript": {
+    "enforceTypes": true,
+    "preferInterfacesOverTypes": true,
+    "strictNullChecks": true
+  },
+  "bestPractices": {
+    "componentFolderStructure": "Organize components by feature or route",
+    "avoidHardcoding": true,
+    "validateInputs": true,
+    "secureApiRoutes": true,
+    "writeReusableFunctions": true
+  },
+  "aiUsage": {
+    "explainBeforeEditing": true,
+    "requireApprovalForSchemaChanges": true,
+    "summarizeChangesInPullRequests": true
+  },
+  "comments": {
+    "requiredForComplexLogic": true,
+    "useJSDocStyle": true
+  }
+}
