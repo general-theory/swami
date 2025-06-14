@@ -23,6 +23,7 @@ export async function PUT(
 
     const body = await request.json();
     const {
+      providerGameId,
       seasonId,
       weekId,
       startDate,
@@ -43,6 +44,7 @@ export async function PUT(
         id: parseInt(params.gameId)
       },
       data: {
+        providerGameId: providerGameId ? Number(providerGameId) : null,
         seasonId,
         weekId,
         startDate: new Date(startDate),
