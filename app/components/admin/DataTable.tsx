@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface Column {
   header: string;
@@ -29,6 +29,10 @@ export default function DataTable<T extends Record<string, unknown>>({
     key: string;
     direction: 'asc' | 'desc';
   } | null>(null);
+
+  useEffect(() => {
+    console.log('Rendering columns:', columns);
+  }, [columns]);
 
   const getNestedValue = (obj: Record<string, unknown>, path: string): unknown => {
     const parts = path.split('.');
@@ -85,24 +89,20 @@ export default function DataTable<T extends Record<string, unknown>>({
       <table className="min-w-full bg-white rounded-lg overflow-hidden">
         <thead className="bg-gray-100">
           <tr>
-            {console.log('Rendering columns:', columns)}
-            {columns.map((column) => {
-              console.log('Rendering column:', column);
-              return (
-                <th
-                  key={column.accessor}
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200"
-                  onClick={() => requestSort(column.accessor)}
-                >
-                  {column.header}
-                  {sortConfig?.key === column.accessor && (
-                    <span className="ml-1">
-                      {sortConfig.direction === 'asc' ? '↑' : '↓'}
-                    </span>
-                  )}
-                </th>
-              );
-            })}
+            {columns.map((column) => (
+              <th
+                key={column.accessor}
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200"
+                onClick={() => requestSort(column.accessor)}
+              >
+                {column.header}
+                {sortConfig?.key === column.accessor && (
+                  <span className="ml-1">
+                    {sortConfig.direction === 'asc' ? '↑' : '↓'}
+                  </span>
+                )}
+              </th>
+            ))}
             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
               Actions
             </th>
@@ -110,14 +110,12 @@ export default function DataTable<T extends Record<string, unknown>>({
         </thead>
         <tbody className="divide-y divide-gray-200">
           {sortedData.map((item, index) => {
-            console.log('Rendering row:', item);
             return (
               <tr key={index} className="hover:bg-gray-50">
                 {columns.map((column) => {
                   const value = column.accessor.includes('.')
                     ? getNestedValue(item, column.accessor)
                     : item[column.accessor];
-                  console.log(`Column ${column.accessor}:`, value);
                   return (
                     <td key={column.accessor} className="px-6 py-4 whitespace-nowrap">
                       {formatValue(value)}

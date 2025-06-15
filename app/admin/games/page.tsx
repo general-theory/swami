@@ -24,13 +24,6 @@ export default function GamesAdmin() {
   const [selectedWeek, setSelectedWeek] = useState<string>('all');
   const [selectedTeam, setSelectedTeam] = useState<string>('all');
 
-  useEffect(() => {
-    fetchGames();
-    fetchTeams();
-    fetchWeeks();
-    fetchSeasons();
-  }, []);
-
   const fetchGames = useCallback(async () => {
     try {
       const response = await fetch('/api/admin/games');
@@ -61,6 +54,17 @@ export default function GamesAdmin() {
     }
   };
 
+  const fetchSeasons = async () => {
+    try {
+      const response = await fetch('/api/admin/seasons');
+      if (!response.ok) throw new Error('Failed to fetch seasons');
+      const data = await response.json();
+      setSeasons(data);
+    } catch (error) {
+      console.error('Error fetching seasons:', error);
+    }
+  };
+
   const fetchWeeks = async () => {
     try {
       const response = await fetch('/api/admin/weeks');
@@ -72,16 +76,12 @@ export default function GamesAdmin() {
     }
   };
 
-  const fetchSeasons = async () => {
-    try {
-      const response = await fetch('/api/admin/seasons');
-      if (!response.ok) throw new Error('Failed to fetch seasons');
-      const data = await response.json();
-      setSeasons(data);
-    } catch (error) {
-      console.error('Error fetching seasons:', error);
-    }
-  };
+  useEffect(() => {
+    fetchGames();
+    fetchTeams();
+    fetchSeasons();
+    fetchWeeks();
+  }, [fetchGames]);
 
   const handleSync = async () => {
     try {
