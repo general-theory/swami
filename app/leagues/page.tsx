@@ -1,7 +1,7 @@
 'use client';
 import { useAuth } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useToast } from "../components/ui/use-toast";
 
 interface League {
@@ -21,14 +21,7 @@ export default function Leagues() {
   const [selectedLeague, setSelectedLeague] = useState<League | null>(null);
   const [action, setAction] = useState<'join' | 'leave' | null>(null);
 
-  useEffect(() => {
-    if (!isSignedIn) {
-      redirect("/");
-    }
-    fetchLeagues();
-  }, [isSignedIn]);
-
-  const fetchLeagues = async () => {
+  const fetchLeagues = useCallback(async () => {
     try {
       const response = await fetch('/api/leagues');
       if (!response.ok) throw new Error('Failed to fetch leagues');
@@ -44,7 +37,14 @@ export default function Leagues() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    if (!isSignedIn) {
+      redirect("/");
+    }
+    fetchLeagues();
+  }, [isSignedIn, fetchLeagues]);
 
   const handleAction = async (league: League, action: 'join' | 'leave') => {
     setSelectedLeague(league);

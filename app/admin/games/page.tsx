@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { useToast } from '../../components/ui/use-toast';
 import { Toaster } from '../../components/ui/toaster';
 import CreateGameModal from '../../components/admin/CreateGameModal';
@@ -11,7 +10,6 @@ import { Game, GameCreateData } from '../../types/game';
 import { Team, Week, Season } from '@prisma/client';
 
 export default function GamesAdmin() {
-  const router = useRouter();
   const { toast } = useToast();
   const [games, setGames] = useState<Game[]>([]);
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
@@ -74,10 +72,6 @@ export default function GamesAdmin() {
     } catch (error) {
       console.error('Error fetching seasons:', error);
     }
-  };
-
-  const handleCreate = () => {
-    setIsCreateModalOpen(true);
   };
 
   const handleSync = async () => {

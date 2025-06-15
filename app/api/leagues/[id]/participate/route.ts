@@ -4,7 +4,8 @@ import { prisma } from '../../../../lib/db/prisma';
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth();
@@ -34,7 +35,8 @@ export async function POST(
       );
     }
 
-    const leagueId = parseInt(params.id);
+    const { id } = await params;
+    const leagueId = parseInt(id);
 
     // Check if league exists
     const league = await prisma.league.findUnique({
@@ -94,7 +96,7 @@ export async function POST(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth();
@@ -124,7 +126,8 @@ export async function PUT(
       );
     }
 
-    const leagueId = parseInt(params.id);
+    const { id } = await params;
+    const leagueId = parseInt(id);
 
     // Check if participation exists
     const participation = await prisma.userParticipation.findUnique({
