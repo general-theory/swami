@@ -51,6 +51,12 @@ export default function Navbar() {
             {isSignedIn && (
               <>
                 <Link 
+                  href="/leagues" 
+                  className="text-gray-300 hover:text-white transition-colors duration-200"
+                >
+                  Leagues
+                </Link>
+                <Link 
                   href="/standings" 
                   className="text-gray-300 hover:text-white transition-colors duration-200"
                 >
