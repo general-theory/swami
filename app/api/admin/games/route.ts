@@ -19,7 +19,10 @@ export async function GET() {
     }
 
     const games = await prisma.game.findMany({
-      include: {
+      select: {
+        id: true,
+        providerGameId: true,
+        seasonId: true,
         season: {
           select: {
             name: true
@@ -30,21 +33,32 @@ export async function GET() {
             week: true
           }
         },
+        startDate: true,
+        completed: true,
+        neutralSite: true,
+        homeId: true,
         homeTeam: {
           select: {
             name: true
           }
         },
+        homePoints: true,
+        spread: true,
+        startingSpread: true,
+        awayId: true,
         awayTeam: {
           select: {
             name: true
           }
         },
+        awayPoints: true,
+        resultId: true,
         resultTeam: {
           select: {
             name: true
           }
-        }
+        },
+        venue: true
       },
       orderBy: {
         startDate: 'desc'
@@ -56,7 +70,7 @@ export async function GET() {
       providerGameId: game.providerGameId,
       seasonId: game.seasonId,
       seasonName: game.season.name,
-      weekId: game.weekId,
+      weekId: game.week.week,
       weekNumber: game.week.week,
       startDate: game.startDate.toISOString(),
       completed: game.completed,
@@ -74,6 +88,7 @@ export async function GET() {
       venue: game.venue
     }));
 
+    console.log('Formatted games:', formattedGames);
     return NextResponse.json(formattedGames);
   } catch (error) {
     console.error('Error fetching games:', error);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '../../components/ui/use-toast';
 import { Toaster } from '../../components/ui/toaster';
 import CreateGameModal from '../../components/admin/CreateGameModal';
@@ -8,6 +8,7 @@ import EditGameModal from '../../components/admin/EditGameModal';
 import DeleteGameModal from '../../components/admin/DeleteGameModal';
 import { Game, GameCreateData } from '../../types/game';
 import { Team, Week, Season } from '@prisma/client';
+import DataTable from '../../components/admin/DataTable';
 
 export default function GamesAdmin() {
   const { toast } = useToast();
@@ -30,16 +31,24 @@ export default function GamesAdmin() {
     fetchSeasons();
   }, []);
 
-  const fetchGames = async () => {
+  const fetchGames = useCallback(async () => {
     try {
       const response = await fetch('/api/admin/games');
-      if (!response.ok) throw new Error('Failed to fetch games');
+      if (!response.ok) {
+        throw new Error('Failed to fetch games');
+      }
       const data = await response.json();
+      console.log('Games data:', data);
       setGames(data);
     } catch (error) {
       console.error('Error fetching games:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch games. Please try again.",
+        variant: "destructive",
+      });
     }
-  };
+  }, [toast]);
 
   const fetchTeams = async () => {
     try {
@@ -99,6 +108,43 @@ export default function GamesAdmin() {
       toast({
         title: "Sync Failed",
         description: "There was an error syncing games. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSyncSpreads = async () => {
+    try {
+      const response = await fetch('/api/admin/games/sync-spreads', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          seasonId: selectedSeason,
+          weekId: selectedWeek,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to sync spreads');
+      }
+
+      const data = await response.json();
+      
+      toast({
+        title: "Sync Complete",
+        description: `Updated spreads for ${data.updated} games.`,
+        variant: "default",
+      });
+
+      // Refresh the games list
+      fetchGames();
+    } catch (error) {
+      console.error('Error syncing spreads:', error);
+      toast({
+        title: "Sync Failed",
+        description: "There was an error syncing spreads. Please try again.",
         variant: "destructive",
       });
     }
@@ -201,6 +247,18 @@ export default function GamesAdmin() {
     return seasonMatch && weekMatch && teamMatch;
   });
 
+  const columns = [
+    { header: 'Season', accessor: 'seasonName' },
+    { header: 'Week', accessor: 'weekNumber' },
+    { header: 'Home Team', accessor: 'homeTeam' },
+    { header: 'Away Team', accessor: 'awayTeam' },
+    { header: 'Spread', accessor: 'spread' },
+    { header: 'Start Date', accessor: 'startDate' },
+    { header: 'Completed', accessor: 'completed' },
+  ];
+
+  console.log('Columns definition:', columns);
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="space-y-6">
@@ -218,6 +276,12 @@ export default function GamesAdmin() {
               className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
             >
               Sync Games
+            </button>
+            <button
+              onClick={handleSyncSpreads}
+              className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
+            >
+              Sync Spreads
             </button>
           </div>
         </div>
@@ -282,67 +346,15 @@ export default function GamesAdmin() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Home Team
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Away Team
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Score
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Venue
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredGames.map((game) => (
-                <tr key={game.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(game.startDate).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {teams.find(t => t.id === game.homeId)?.name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {teams.find(t => t.id === game.awayId)?.name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {game.completed ? `${game.homePoints} - ${game.awayPoints}` : 'TBD'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {game.venue}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => handleEdit(game)}
-                        className="text-blue-600 hover:text-blue-900"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDeleteClick(game)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <DataTable
+            columns={columns}
+            data={filteredGames}
+            onEdit={handleEdit}
+            onDelete={handleDeleteClick}
+            isDeleteModalOpen={isDeleteModalOpen}
+            onDeleteConfirm={handleDeleteConfirm}
+            onDeleteCancel={() => setIsDeleteModalOpen(false)}
+          />
         </div>
       </div>
 
