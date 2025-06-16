@@ -18,6 +18,7 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   participations UserParticipation[]
+  wagers          Wager[]
 }
 
 model Season {
@@ -103,32 +104,48 @@ model Week {
 }
 
 model Game {
-  id            Int      @id @default(autoincrement())
-  providerGameId Int?    @unique
-  season        Season   @relation(fields: [seasonId], references: [id])
-  seasonId      Int
-  week          Week     @relation(fields: [weekId], references: [id])
-  weekId        Int
-  startDate     DateTime
-  completed     Boolean  @default(false)
-  neutralSite   Boolean  @default(false)
-  homeTeam      Team     @relation("HomeTeam", fields: [homeId], references: [id])
-  homeId        String
-  homePoints    Int?
-  spread        Float?
-  startingSpread Float?
-  awayTeam      Team     @relation("AwayTeam", fields: [awayId], references: [id])
-  awayId        String
-  awayPoints    Int?
-  resultTeam    Team?    @relation("ResultTeam", fields: [resultId], references: [id])
-  resultId      String?
-  venue         String
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id              Int       @id @default(autoincrement())
+  providerGameId  Int?
+  seasonId        Int
+  season          Season    @relation(fields: [seasonId], references: [id])
+  weekId          Int
+  week            Week      @relation(fields: [weekId], references: [id])
+  startDate       DateTime
+  completed       Boolean   @default(false)
+  neutralSite     Boolean   @default(false)
+  homeId          String
+  homeTeam        Team      @relation("HomeTeam", fields: [homeId], references: [id])
+  homePoints      Int?
+  spread          Float?
+  startingSpread  Float?
+  awayId          String
+  awayTeam        Team      @relation("AwayTeam", fields: [awayId], references: [id])
+  awayPoints      Int?
+  resultId        String?
+  resultTeam      Team?     @relation("ResultTeam", fields: [resultId], references: [id])
+  venue           String?
+  wagers          Wager[]
 
   @@index([seasonId])
   @@index([weekId])
   @@index([homeId])
   @@index([awayId])
   @@index([resultId])
+}
+
+model Wager {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  user          User     @relation(fields: [userId], references: [id])
+  gameId        Int
+  game          Game     @relation(fields: [gameId], references: [id])
+  pick          String   @db.VarChar(4) // 'home' or 'away'
+  amount        Int      @default(0)
+  won           Boolean  @default(false)
+  balanceImpact Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([gameId])
+  @@index([userId])
 }

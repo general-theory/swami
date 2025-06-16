@@ -9,90 +9,57 @@ export async function GET() {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
+    // Check if the current user is an admin
+    const currentUser = await prisma.user.findUnique({
       where: { clerkId: userId },
-      select: { admin: true }
     });
 
-    if (!user?.admin) {
-      return new NextResponse('Unauthorized', { status: 401 });
+    if (!currentUser?.admin) {
+      return new NextResponse('Forbidden', { status: 403 });
     }
 
     const games = await prisma.game.findMany({
-      select: {
-        id: true,
-        providerGameId: true,
-        seasonId: true,
+      where: {
+        completed: false,
+      },
+      include: {
+        homeTeam: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        awayTeam: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         season: {
           select: {
-            name: true
-          }
+            id: true,
+            name: true,
+          },
         },
         week: {
           select: {
-            week: true
-          }
+            id: true,
+            week: true,
+          },
         },
-        startDate: true,
-        completed: true,
-        neutralSite: true,
-        homeId: true,
-        homeTeam: {
-          select: {
-            name: true
-          }
-        },
-        homePoints: true,
-        spread: true,
-        startingSpread: true,
-        awayId: true,
-        awayTeam: {
-          select: {
-            name: true
-          }
-        },
-        awayPoints: true,
-        resultId: true,
-        resultTeam: {
-          select: {
-            name: true
-          }
-        },
-        venue: true
       },
       orderBy: {
-        startDate: 'desc'
-      }
+        startDate: 'asc',
+      },
     });
 
-    const formattedGames = games.map(game => ({
-      id: game.id,
-      providerGameId: game.providerGameId,
-      seasonId: game.seasonId,
-      seasonName: game.season.name,
-      weekId: game.week.week,
-      weekNumber: game.week.week,
-      startDate: game.startDate.toISOString(),
-      completed: game.completed,
-      neutralSite: game.neutralSite,
-      homeId: game.homeId,
-      homeTeam: game.homeTeam.name,
-      homePoints: game.homePoints,
-      spread: game.spread,
-      startingSpread: game.startingSpread,
-      awayId: game.awayId,
-      awayTeam: game.awayTeam.name,
-      awayPoints: game.awayPoints,
-      resultId: game.resultId,
-      resultTeam: game.resultTeam?.name || null,
-      venue: game.venue
-    }));
-
-    console.log('Formatted games:', formattedGames);
-    return NextResponse.json(formattedGames);
+    return NextResponse.json(games);
   } catch (error) {
     console.error('Error fetching games:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    return NextResponse.json(
+      { error: 'Error fetching games' },
+      { status: 500 }
+    );
   }
 }
 

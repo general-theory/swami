@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { UsersIcon, TagIcon, CalendarIcon, CalendarDaysIcon, TrophyIcon, BanknotesIcon } from '@heroicons/react/24/outline';
 
 interface DashboardStats {
   users: number;
@@ -22,79 +23,101 @@ export default function AdminDashboard() {
     games: 0,
     teams: 0,
     weeks: 0,
-    participations: 0
+    participations: 0,
   });
 
   useEffect(() => {
     const checkAdminAndFetchStats = async () => {
       try {
-        const response = await fetch('/api/user');
-        const userData = await response.json();
-        
-        if (!userData?.admin) {
-          router.push('/');
-          return;
+        const response = await fetch('/api/admin/stats');
+        if (!response.ok) {
+          if (response.status === 403) {
+            router.push('/');
+          }
+          throw new Error('Failed to fetch stats');
         }
-
-        const statsResponse = await fetch('/api/admin/stats');
-        if (!statsResponse.ok) throw new Error('Failed to fetch stats');
-        const statsData = await statsResponse.json();
-        setStats(statsData);
+        const data = await response.json();
+        setStats(data);
       } catch (error) {
-        console.error('Error checking admin status:', error);
-        router.push('/');
+        console.error('Error fetching stats:', error);
       }
     };
 
     checkAdminAndFetchStats();
   }, [router]);
 
+  const cards = [
+    {
+      title: 'Users',
+      description: 'Manage user accounts and permissions',
+      href: '/admin/users',
+      icon: UsersIcon,
+      count: stats.users,
+    },
+    {
+      title: 'Teams',
+      description: 'Manage college football teams',
+      href: '/admin/teams',
+      icon: TagIcon,
+      count: stats.teams,
+    },
+    {
+      title: 'Seasons',
+      description: 'Manage football seasons',
+      href: '/admin/seasons',
+      icon: CalendarIcon,
+      count: stats.seasons,
+    },
+    {
+      title: 'Weeks',
+      description: 'Manage season weeks',
+      href: '/admin/weeks',
+      icon: CalendarDaysIcon,
+      count: stats.weeks,
+    },
+    {
+      title: 'Games',
+      description: 'Manage football games',
+      href: '/admin/games',
+      icon: TrophyIcon,
+      count: stats.games,
+    },
+    {
+      title: 'Leagues',
+      description: 'Manage betting leagues',
+      href: '/admin/leagues',
+      icon: TrophyIcon,
+      count: stats.leagues,
+    },
+    {
+      title: 'Wagers',
+      description: 'Manage user wagers',
+      href: '/admin/wagers',
+      icon: BanknotesIcon,
+      count: stats.participations,
+    },
+  ];
+
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Link href="/admin/users" className="block">
-          <div className="bg-gray-800 p-6 rounded-lg hover:bg-gray-700 transition-colors">
-            <h2 className="text-xl font-semibold mb-2">Users</h2>
-            <p className="text-3xl font-bold">{stats.users}</p>
-          </div>
-        </Link>
-        <Link href="/admin/seasons" className="block">
-          <div className="bg-gray-800 p-6 rounded-lg hover:bg-gray-700 transition-colors">
-            <h2 className="text-xl font-semibold mb-2">Seasons</h2>
-            <p className="text-3xl font-bold">{stats.seasons}</p>
-          </div>
-        </Link>
-        <Link href="/admin/leagues" className="block">
-          <div className="bg-gray-800 p-6 rounded-lg hover:bg-gray-700 transition-colors">
-            <h2 className="text-xl font-semibold mb-2">Leagues</h2>
-            <p className="text-3xl font-bold">{stats.leagues}</p>
-          </div>
-        </Link>
-        <Link href="/admin/games" className="block">
-          <div className="bg-gray-800 p-6 rounded-lg hover:bg-gray-700 transition-colors">
-            <h2 className="text-xl font-semibold mb-2">Games</h2>
-            <p className="text-3xl font-bold">{stats.games}</p>
-          </div>
-        </Link>
-        <Link href="/admin/teams" className="block">
-          <div className="bg-gray-800 p-6 rounded-lg hover:bg-gray-700 transition-colors">
-            <h2 className="text-xl font-semibold mb-2">Teams</h2>
-            <p className="text-3xl font-bold">{stats.teams}</p>
-          </div>
-        </Link>
-        <Link href="/admin/weeks" className="block">
-          <div className="bg-gray-800 p-6 rounded-lg hover:bg-gray-700 transition-colors">
-            <h2 className="text-xl font-semibold mb-2">Weeks</h2>
-            <p className="text-3xl font-bold">{stats.weeks}</p>
-          </div>
-        </Link>
-        <Link href="/admin/participations" className="block">
-          <div className="bg-gray-800 p-6 rounded-lg hover:bg-gray-700 transition-colors">
-            <h2 className="text-xl font-semibold mb-2">Participations</h2>
-            <p className="text-3xl font-bold">{stats.participations}</p>
-          </div>
-        </Link>
+    <div className="p-6">
+      <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {cards.map((card) => (
+          <Link
+            key={card.href}
+            href={card.href}
+            className="block p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow"
+          >
+            <div className="flex items-center space-x-4">
+              <card.icon className="h-8 w-8 text-blue-600" />
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">{card.title}</h2>
+                <p className="text-gray-600">{card.description}</p>
+                <p className="text-2xl font-bold text-blue-600 mt-2">{card.count}</p>
+              </div>
+            </div>
+          </Link>
+        ))}
       </div>
     </div>
   );

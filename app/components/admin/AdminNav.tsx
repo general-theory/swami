@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { HomeIcon, UsersIcon, TeamIcon, CalendarIcon, CalendarDaysIcon, TrophyIcon, BanknoteIcon } from '@heroicons/react/24/outline';
 
 export default function AdminNav() {
   const pathname = usePathname();
@@ -9,49 +10,31 @@ export default function AdminNav() {
     return pathname === path;
   };
 
+  const navItems = [
+    { href: '/admin', label: 'Dashboard', icon: HomeIcon },
+    { href: '/admin/users', label: 'Users', icon: UsersIcon },
+    { href: '/admin/teams', label: 'Teams', icon: TeamIcon },
+    { href: '/admin/seasons', label: 'Seasons', icon: CalendarIcon },
+    { href: '/admin/weeks', label: 'Weeks', icon: CalendarDaysIcon },
+    { href: '/admin/games', label: 'Games', icon: TrophyIcon },
+    { href: '/admin/leagues', label: 'Leagues', icon: TrophyIcon },
+    { href: '/admin/wagers', label: 'Wagers', icon: BanknoteIcon },
+  ];
+
   return (
     <nav className="bg-gray-800 text-white w-64 min-h-screen p-4">
       <div className="space-y-2">
-        <Link
-          href="/admin"
-          className={`block px-4 py-2 rounded ${
-            isActive('/admin') ? 'bg-gray-700' : 'hover:bg-gray-700'
-          }`}
-        >
-          Dashboard
-        </Link>
-        <Link
-          href="/admin/users"
-          className={`block px-4 py-2 rounded ${
-            isActive('/admin/users') ? 'bg-gray-700' : 'hover:bg-gray-700'
-          }`}
-        >
-          Users
-        </Link>
-        <Link
-          href="/admin/seasons"
-          className={`block px-4 py-2 rounded ${
-            isActive('/admin/seasons') ? 'bg-gray-700' : 'hover:bg-gray-700'
-          }`}
-        >
-          Seasons
-        </Link>
-        <Link
-          href="/admin/leagues"
-          className={`block px-4 py-2 rounded ${
-            isActive('/admin/leagues') ? 'bg-gray-700' : 'hover:bg-gray-700'
-          }`}
-        >
-          Leagues
-        </Link>
-        <Link
-          href="/admin/games"
-          className={`block px-4 py-2 rounded ${
-            isActive('/admin/games') ? 'bg-gray-700' : 'hover:bg-gray-700'
-          }`}
-        >
-          Games
-        </Link>
+        {navItems.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={`block px-4 py-2 rounded ${
+              isActive(item.href) ? 'bg-gray-700' : 'hover:bg-gray-700'
+            }`}
+          >
+            {item.label}
+          </Link>
+        ))}
       </div>
     </nav>
   );

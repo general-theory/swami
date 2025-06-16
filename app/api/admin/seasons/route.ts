@@ -19,18 +19,16 @@ export async function GET() {
     }
 
     const seasons = await prisma.season.findMany({
-      select: {
-        id: true,
-        name: true,
-        year: true,
-        active: true,
-      },
+      orderBy: { year: 'desc' },
     });
 
     return NextResponse.json(seasons);
   } catch (error) {
     console.error('Error fetching seasons:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    return NextResponse.json(
+      { error: 'Error fetching seasons' },
+      { status: 500 }
+    );
   }
 }
 
