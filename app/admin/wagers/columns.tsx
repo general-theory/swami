@@ -25,6 +25,10 @@ export const columns: Column<WagerWithDetails>[] = [
     },
   },
   {
+    accessorKey: 'league.name',
+    header: 'League',
+  },
+  {
     accessorKey: 'game.homeTeam.name',
     header: 'Game',
   },

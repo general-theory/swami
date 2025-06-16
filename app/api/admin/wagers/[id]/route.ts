@@ -22,22 +22,87 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { userId: wagerUserId, gameId, pick, amount, won, balanceImpact } = body;
+    const { userId: wagerUserId, gameId, leagueId, pick, amount, won, balanceImpact } = body;
     const resolvedParams = await params;
 
-    const wager = await prisma.wager.update({
+    console.log('Updating wager with data:', { won, type: typeof won }); // Debug log
+
+    // First get the current wager to preserve balanceImpact
+    const currentWager = await prisma.wager.findUnique({
+      where: { id: parseInt(resolvedParams.id) }
+    });
+
+    if (!currentWager) {
+      return new NextResponse('Wager not found', { status: 404 });
+    }
+
+    // Then update the wager
+    await prisma.$executeRaw`
+      UPDATE Wager 
+      SET userId = ${parseInt(wagerUserId)},
+          gameId = ${parseInt(gameId)},
+          leagueId = ${parseInt(leagueId)},
+          pick = ${pick},
+          amount = ${parseInt(amount)},
+          won = ${won === 'true'},
+          balanceImpact = ${balanceImpact !== undefined ? parseInt(balanceImpact) : currentWager.balanceImpact}
+      WHERE id = ${parseInt(resolvedParams.id)}
+    `;
+
+    // Then fetch the updated wager with relations
+    const wager = await prisma.wager.findUnique({
       where: {
         id: parseInt(resolvedParams.id)
       },
-      data: {
-        userId: wagerUserId,
-        gameId,
-        pick,
-        amount,
-        won,
-        balanceImpact
-      }
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+        game: {
+          select: {
+            id: true,
+            homeTeam: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+            awayTeam: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+            season: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+            week: {
+              select: {
+                id: true,
+                week: true,
+              },
+            },
+          },
+        },
+        league: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
     });
+
+    if (!wager) {
+      return new NextResponse('Wager not found', { status: 404 });
+    }
 
     return NextResponse.json(wager);
   } catch (error) {

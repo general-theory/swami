@@ -42,12 +42,18 @@ interface Week {
   active: boolean;
 }
 
+interface League {
+  id: number;
+  name: string;
+}
+
 interface CreateWagerModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: (wager: WagerWithDetails) => void;
   users: { id: number; firstName: string; lastName: string; }[];
   games: Game[];
+  leagues: League[];
   wager?: WagerWithDetails;
 }
 
@@ -57,6 +63,7 @@ export default function CreateWagerModal({
   onSuccess,
   users,
   games,
+  leagues,
   wager
 }: CreateWagerModalProps) {
   const { toast } = useToast();
@@ -68,8 +75,10 @@ export default function CreateWagerModal({
   const [formData, setFormData] = useState({
     userId: '',
     gameId: '',
+    leagueId: '',
     pick: '',
     amount: '',
+    won: false,
   });
 
   useEffect(() => {
@@ -120,8 +129,10 @@ export default function CreateWagerModal({
       setFormData({
         userId: wager.userId.toString(),
         gameId: wager.gameId.toString(),
+        leagueId: wager.leagueId.toString(),
         pick: wager.pick,
         amount: wager.amount.toString(),
+        won: wager.won || false,
       });
       // Set season and week based on the wager's game
       const game = games.find(g => g.id === wager.gameId);
@@ -143,7 +154,7 @@ export default function CreateWagerModal({
     setLoading(true);
 
     try {
-      const response = await fetch('/api/admin/wagers', {
+      const response = await fetch(wager ? `/api/admin/wagers/${wager.id}` : '/api/admin/wagers', {
         method: wager ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -151,6 +162,7 @@ export default function CreateWagerModal({
         body: JSON.stringify({
           ...formData,
           id: wager?.id,
+          won: formData.won.toString(),
         }),
       });
 
@@ -204,6 +216,25 @@ export default function CreateWagerModal({
                 {users.map((user) => (
                   <SelectItem key={user.id} value={user.id.toString()} className="text-white hover:bg-gray-600">
                     {`${user.firstName} ${user.lastName}`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="leagueId" className="text-gray-300">League</Label>
+            <Select
+              value={formData.leagueId}
+              onValueChange={(value: string) => setFormData({ ...formData, leagueId: value })}
+            >
+              <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                <SelectValue placeholder="Select league" />
+              </SelectTrigger>
+              <SelectContent className="bg-gray-700 border-gray-600 max-h-[200px] overflow-y-auto">
+                {leagues.map((league) => (
+                  <SelectItem key={league.id} value={league.id.toString()} className="text-white hover:bg-gray-600">
+                    {league.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -297,6 +328,24 @@ export default function CreateWagerModal({
               className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
             />
           </div>
+
+          {wager && (
+            <div className="space-y-2">
+              <Label htmlFor="won" className="text-gray-300">Won</Label>
+              <Select
+                value={formData.won.toString()}
+                onValueChange={(value: string) => setFormData({ ...formData, won: value === 'true' })}
+              >
+                <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-700 border-gray-600">
+                  <SelectItem value="true" className="text-white hover:bg-gray-600">Yes</SelectItem>
+                  <SelectItem value="false" className="text-white hover:bg-gray-600">No</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="flex justify-end space-x-2">
             <Button

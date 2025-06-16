@@ -37,6 +37,7 @@ export interface WagerWithDetails {
   id: number;
   userId: number;
   gameId: number;
+  leagueId: number;
   pick: string;
   amount: number;
   won: boolean | null;
@@ -65,6 +66,10 @@ export interface WagerWithDetails {
       week: number;
     };
   };
+  league: {
+    id: number;
+    name: string;
+  };
 }
 
 const queryClient = new QueryClient();
@@ -74,6 +79,7 @@ function WagersAdminContent() {
   const [wagers, setWagers] = useState<WagerWithDetails[]>([]);
   const [users, setUsers] = useState<{ id: number; firstName: string; lastName: string; }[]>([]);
   const [games, setGames] = useState<Game[]>([]);
+  const [leagues, setLeagues] = useState<{ id: number; name: string; }[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedWager, setSelectedWager] = useState<WagerWithDetails | null>(null);
@@ -128,10 +134,22 @@ function WagersAdminContent() {
     }
   }, []);
 
+  const fetchLeagues = useCallback(async () => {
+    try {
+      const response = await fetch('/api/admin/leagues');
+      if (!response.ok) throw new Error('Failed to fetch leagues');
+      const data = await response.json();
+      setLeagues(data);
+    } catch (error) {
+      console.error('Error fetching leagues:', error);
+    }
+  }, []);
+
   useEffect(() => {
     fetchUsers();
     fetchGames();
-  }, [fetchUsers, fetchGames]);
+    fetchLeagues();
+  }, [fetchUsers, fetchGames, fetchLeagues]);
 
   const handleEdit = (wager: WagerWithDetails) => {
     setSelectedWager(wager);
@@ -221,6 +239,7 @@ function WagersAdminContent() {
         onSuccess={handleCreateSuccess}
         users={users}
         games={games}
+        leagues={leagues}
       />
 
       <CreateWagerModal
@@ -229,6 +248,7 @@ function WagersAdminContent() {
         onSuccess={handleEditSuccess}
         users={users}
         games={games}
+        leagues={leagues}
         wager={selectedWager || undefined}
       />
     </div>

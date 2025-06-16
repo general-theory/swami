@@ -34,13 +34,15 @@ model Season {
 }
 
 model League {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
-  description String   @db.Text
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            Int      @id @default(autoincrement())
+  name          String   @unique
+  description   String   @db.Text
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
   participations UserParticipation[]
+  wagers         Wager[]
 }
 
 model UserParticipation {
@@ -136,16 +138,21 @@ model Game {
 model Wager {
   id            Int      @id @default(autoincrement())
   userId        Int
-  user          User     @relation(fields: [userId], references: [id])
   gameId        Int
-  game          Game     @relation(fields: [gameId], references: [id])
-  pick          String   @db.VarChar(4) // 'home' or 'away'
+  leagueId      Int
+  pick          String
   amount        Int      @default(0)
-  won           Boolean  @default(false)
+  won           Boolean?
   balanceImpact Int      @default(0)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  @@index([gameId])
+  user          User     @relation(fields: [userId], references: [id])
+  game          Game     @relation(fields: [gameId], references: [id])
+  league        League   @relation(fields: [leagueId], references: [id])
+
+  @@unique([userId, gameId, leagueId])
   @@index([userId])
+  @@index([gameId])
+  @@index([leagueId])
 }
