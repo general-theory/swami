@@ -64,9 +64,20 @@ export default function Leagues() {
         body: JSON.stringify({ active: action === 'join' }),
       });
 
-      if (!response.ok) throw new Error(`Failed to ${action} league`);
+      if (!response.ok) {
+        throw new Error(`Failed to ${action} league`);
+      }
 
-      await fetchLeagues();
+      // Update local state
+      setLeagues(leagues.map(l => 
+        l.id === selectedLeague.id 
+          ? { ...l, isParticipating: action === 'join' }
+          : l
+      ));
+
+      // Dispatch event to update navbar
+      window.dispatchEvent(new Event('leagueChange'));
+
       toast({
         title: "Success",
         description: `Successfully ${action === 'join' ? 'joined' : 'left'} ${selectedLeague.name}`,

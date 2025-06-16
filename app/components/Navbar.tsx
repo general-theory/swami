@@ -7,23 +7,41 @@ import { useEffect, useState } from "react";
 export default function Navbar() {
   const { isLoaded, isSignedIn, userId } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [hasActiveLeagues, setHasActiveLeagues] = useState(false);
+
+  const checkUserStatus = async () => {
+    if (!isLoaded) return;
+    if (isSignedIn && userId) {
+      try {
+        const [userResponse, leaguesResponse] = await Promise.all([
+          fetch('/api/user'),
+          fetch('/api/leagues/active')
+        ]);
+        const userData = await userResponse.json();
+        const leaguesData = await leaguesResponse.json();
+        setIsAdmin(userData?.admin || false);
+        setHasActiveLeagues(leaguesData.length > 0);
+      } catch (error) {
+        console.error('Error checking user status:', error);
+        setIsAdmin(false);
+        setHasActiveLeagues(false);
+      }
+    }
+  };
 
   useEffect(() => {
-    const checkAdminStatus = async () => {
-      if (!isLoaded) return;
-      if (isSignedIn && userId) {
-        try {
-          const response = await fetch('/api/user');
-          const userData = await response.json();
-          setIsAdmin(userData?.admin || false);
-        } catch (error) {
-          console.error('Error checking admin status:', error);
-          setIsAdmin(false);
-        }
-      }
+    checkUserStatus();
+
+    // Listen for league changes
+    const handleLeagueChange = () => {
+      checkUserStatus();
     };
 
-    checkAdminStatus();
+    window.addEventListener('leagueChange', handleLeagueChange);
+
+    return () => {
+      window.removeEventListener('leagueChange', handleLeagueChange);
+    };
   }, [isLoaded, isSignedIn, userId]);
 
   if (!isLoaded) {
@@ -74,6 +92,14 @@ export default function Navbar() {
                 >
                   Messages
                 </Link>
+                {hasActiveLeagues && (
+                  <Link 
+                    href="/wager" 
+                    className="text-green-400 hover:text-green-300 transition-colors duration-200"
+                  >
+                    Wager
+                  </Link>
+                )}
                 {isAdmin && (
                   <Link 
                     href="/admin" 
