@@ -1,7 +1,13 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { HomeIcon, UsersIcon, TeamIcon, CalendarIcon, CalendarDaysIcon, TrophyIcon, BanknoteIcon } from '@heroicons/react/24/outline';
+import {
+  HomeIcon,
+  UsersIcon,
+  CalendarIcon,
+  CurrencyDollarIcon,
+  TrophyIcon,
+} from '@heroicons/react/24/outline';
 
 export default function AdminNav() {
   const pathname = usePathname();
@@ -13,12 +19,12 @@ export default function AdminNav() {
   const navItems = [
     { href: '/admin', label: 'Dashboard', icon: HomeIcon },
     { href: '/admin/users', label: 'Users', icon: UsersIcon },
-    { href: '/admin/teams', label: 'Teams', icon: TeamIcon },
+    { href: '/admin/teams', label: 'Teams', icon: UsersIcon },
     { href: '/admin/seasons', label: 'Seasons', icon: CalendarIcon },
-    { href: '/admin/weeks', label: 'Weeks', icon: CalendarDaysIcon },
+    { href: '/admin/weeks', label: 'Weeks', icon: CalendarIcon },
     { href: '/admin/games', label: 'Games', icon: TrophyIcon },
     { href: '/admin/leagues', label: 'Leagues', icon: TrophyIcon },
-    { href: '/admin/wagers', label: 'Wagers', icon: BanknoteIcon },
+    { href: '/admin/wagers', label: 'Wagers', icon: CurrencyDollarIcon },
   ];
 
   return (

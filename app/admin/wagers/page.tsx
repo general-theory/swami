@@ -207,7 +207,7 @@ function WagersAdminContent() {
           </AlertDescription>
         </Alert>
       ) : (
-        <DataTable
+        <DataTable<WagerWithDetails>
           columns={columns}
           data={wagers}
           onEdit={handleEdit}

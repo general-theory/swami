@@ -10,32 +10,43 @@ import {
   DialogDescription,
 } from '../../components/ui/dialog';
 
-interface Column {
+interface Column<T> {
   header: string;
   accessor?: string;
   accessorKey?: string;
-  cell?: ({ row }: { row: { original: any } }) => React.ReactNode;
+  cell?: ({ row }: { row: { original: T } }) => React.ReactNode;
 }
 
-interface DataTableProps {
-  columns: Column[];
-  data: any[];
-  onEdit?: (item: any) => void;
-  onDelete?: (item: any) => void;
+interface DataTableProps<T> {
+  columns: Column<T>[];
+  data: T[];
+  onEdit?: (item: T) => void;
+  onDelete?: (item: T) => void;
+  isDeleteModalOpen?: boolean;
+  onDeleteConfirm?: () => void;
+  onDeleteCancel?: () => void;
 }
 
-export default function DataTable({ columns, data, onEdit, onDelete }: DataTableProps) {
+export default function DataTable<T>({ 
+  columns, 
+  data, 
+  onEdit, 
+  onDelete,
+  isDeleteModalOpen,
+  onDeleteConfirm,
+  onDeleteCancel
+}: DataTableProps<T>) {
   const [sortConfig, setSortConfig] = useState<{
     key: string;
     direction: 'asc' | 'desc';
   } | null>(null);
-  const [deleteItem, setDeleteItem] = useState<any | null>(null);
+  const [deleteItem, setDeleteItem] = useState<T | null>(null);
 
   useEffect(() => {
     console.log('Rendering columns:', columns);
   }, [columns]);
 
-  const getNestedValue = (obj: any, path: string): unknown => {
+  const getNestedValue = (obj: T, path: string): unknown => {
     const parts = path.split('.');
     let current: unknown = obj;
     
@@ -88,7 +99,7 @@ export default function DataTable({ columns, data, onEdit, onDelete }: DataTable
     return 0;
   });
 
-  const handleDelete = (item: any) => {
+  const handleDelete = (item: T) => {
     setDeleteItem(item);
   };
 
@@ -96,10 +107,16 @@ export default function DataTable({ columns, data, onEdit, onDelete }: DataTable
     if (deleteItem && onDelete) {
       onDelete(deleteItem);
     }
+    if (onDeleteConfirm) {
+      onDeleteConfirm();
+    }
     setDeleteItem(null);
   };
 
   const handleDeleteCancel = () => {
+    if (onDeleteCancel) {
+      onDeleteCancel();
+    }
     setDeleteItem(null);
   };
 
@@ -108,15 +125,15 @@ export default function DataTable({ columns, data, onEdit, onDelete }: DataTable
       <table className="min-w-full bg-white rounded-lg overflow-hidden">
         <thead className="bg-gray-50">
           <tr>
-            {columns.map((column) => (
+            {columns.map((column, index) => (
               <th
-                key={column.accessorKey || column.accessor || ''}
+                key={index}
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200"
-                onClick={() => requestSort(column.accessorKey || column.accessor || '')}
+                onClick={() => requestSort(column.accessorKey || '')}
               >
                 <div className="flex items-center space-x-1">
                   <span>{column.header}</span>
-                  {sortConfig?.key === (column.accessorKey || column.accessor || '') && sortConfig?.direction && (
+                  {sortConfig?.key === column.accessorKey && sortConfig?.direction && (
                     <span>{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
                   )}
                 </div>
@@ -139,11 +156,9 @@ export default function DataTable({ columns, data, onEdit, onDelete }: DataTable
               {columns.map((column, colIndex) => {
                 const value = column.accessorKey 
                   ? getNestedValue(item, column.accessorKey)
-                  : column.accessor 
-                    ? getNestedValue(item, column.accessor)
-                    : (item as any)[column.accessorKey || column.accessor || ''];
+                  : undefined;
                 return (
-                  <td key={`${rowIndex}-${colIndex}-${column.accessorKey || column.accessor || ''}`} className="px-6 py-4 whitespace-nowrap">
+                  <td key={`${rowIndex}-${colIndex}`} className="px-6 py-4 whitespace-nowrap">
                     {column.cell ? column.cell({ row: { original: item } }) : formatValue(value)}
                   </td>
                 );
@@ -175,12 +190,17 @@ export default function DataTable({ columns, data, onEdit, onDelete }: DataTable
         </tbody>
       </table>
 
-      <Dialog open={!!deleteItem} onOpenChange={() => setDeleteItem(null)}>
+      <Dialog open={!!deleteItem || isDeleteModalOpen} onOpenChange={() => {
+        if (onDeleteCancel) {
+          onDeleteCancel();
+        }
+        setDeleteItem(null);
+      }}>
         <DialogContent className="sm:max-w-[425px] bg-gray-800 text-white">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold text-white">Confirm Delete</DialogTitle>
             <DialogDescription className="text-gray-300">
-              Are you sure you want to delete this wager? This action cannot be undone.
+              Are you sure you want to delete this item? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end space-x-2 mt-4">

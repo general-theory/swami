@@ -1,7 +1,13 @@
-import { ColumnDef, Row } from '@tanstack/react-table';
 import { WagerWithDetails } from './page';
 
-export const columns: ColumnDef<WagerWithDetails>[] = [
+export interface Column<T> {
+  header: string;
+  accessor?: string;
+  accessorKey?: string;
+  cell?: ({ row }: { row: { original: T } }) => React.ReactNode;
+}
+
+export const columns: Column<WagerWithDetails>[] = [
   {
     accessorKey: 'game.season.name',
     header: 'Season',
@@ -13,7 +19,7 @@ export const columns: ColumnDef<WagerWithDetails>[] = [
   {
     accessorKey: 'user',
     header: 'User',
-    cell: ({ row }: { row: Row<WagerWithDetails> }) => {
+    cell: ({ row }) => {
       const user = row.original.user;
       return `${user.firstName} ${user.lastName}`;
     },

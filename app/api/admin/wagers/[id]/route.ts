@@ -4,7 +4,7 @@ import { prisma } from '../../../../lib/db/prisma';
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth();
@@ -23,10 +23,11 @@ export async function PUT(
 
     const body = await request.json();
     const { userId: wagerUserId, gameId, pick, amount, won, balanceImpact } = body;
+    const resolvedParams = await params;
 
     const wager = await prisma.wager.update({
       where: {
-        id: parseInt(params.id)
+        id: parseInt(resolvedParams.id)
       },
       data: {
         userId: wagerUserId,
@@ -47,7 +48,7 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth();
@@ -64,9 +65,11 @@ export async function DELETE(
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
+    const resolvedParams = await params;
+
     await prisma.wager.delete({
       where: {
-        id: parseInt(params.id)
+        id: parseInt(resolvedParams.id)
       }
     });
 
