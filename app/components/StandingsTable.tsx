@@ -74,6 +74,12 @@ export default function StandingsTable({ columns, data }: StandingsTableProps) {
     if (aValue === null || aValue === undefined) return 1;
     if (bValue === null || bValue === undefined) return -1;
 
+    // Handle numeric values
+    if (typeof aValue === 'number' && typeof bValue === 'number') {
+      return sortConfig.direction === 'asc' ? aValue - bValue : bValue - aValue;
+    }
+
+    // Handle string values
     const comparison = String(aValue) < String(bValue) ? -1 : 1;
     return sortConfig.direction === 'asc' ? comparison : -comparison;
   });
