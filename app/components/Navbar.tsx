@@ -2,14 +2,14 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { SignInButton, SignOutButton, useAuth } from "@clerk/nextjs";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 export default function Navbar() {
   const { isLoaded, isSignedIn, userId } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [hasActiveLeagues, setHasActiveLeagues] = useState(false);
 
-  const checkUserStatus = async () => {
+  const checkUserStatus = useCallback(async () => {
     if (!isLoaded) return;
     if (isSignedIn && userId) {
       try {
@@ -27,7 +27,7 @@ export default function Navbar() {
         setHasActiveLeagues(false);
       }
     }
-  };
+  }, [isLoaded, isSignedIn, userId]);
 
   useEffect(() => {
     checkUserStatus();
@@ -42,7 +42,7 @@ export default function Navbar() {
     return () => {
       window.removeEventListener('leagueChange', handleLeagueChange);
     };
-  }, [isLoaded, isSignedIn, userId]);
+  }, [checkUserStatus]);
 
   if (!isLoaded) {
     return <div>Loading...</div>;
