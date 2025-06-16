@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import AdminNav from '../components/admin/AdminNav';
 
 export default function AdminLayout({
   children,
@@ -9,7 +9,6 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const pathname = usePathname();
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
@@ -37,44 +36,10 @@ export default function AdminLayout({
     return null;
   }
 
-  const navItems = [
-    { href: '/admin', label: 'Dashboard' },
-    { href: '/admin/users', label: 'Users' },
-    { href: '/admin/seasons', label: 'Seasons' },
-    { href: '/admin/leagues', label: 'Leagues' },
-    { href: '/admin/games', label: 'Games' },
-    { href: '/admin/teams', label: 'Teams' },
-    { href: '/admin/weeks', label: 'Weeks' },
-    { href: '/admin/participations', label: 'Participations' }
-  ];
-
-  const isActive = (path: string) => {
-    return pathname === path;
-  };
-
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
-      <div className="w-64 bg-gray-800 text-white">
-        <div className="p-4">
-          <h1 className="text-2xl font-bold">Admin Panel</h1>
-        </div>
-        <nav className="mt-4">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`block px-4 py-2 ${
-                isActive(item.href)
-                  ? 'bg-gray-900 text-white'
-                  : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-              }`}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-      </div>
+      <AdminNav />
 
       {/* Main content */}
       <div className="flex-1 overflow-auto">

@@ -90,11 +90,18 @@ export default function AdminDashboard() {
       count: stats.leagues,
     },
     {
+      title: 'Participations',
+      description: 'Manage league participations',
+      href: '/admin/participations',
+      icon: UsersIcon,
+      count: stats.participations,
+    },
+    {
       title: 'Wagers',
       description: 'Manage user wagers',
       href: '/admin/wagers',
       icon: BanknotesIcon,
-      count: stats.participations,
+      count: 0, // TODO: Add wagers count to stats
     },
   ];
 

@@ -16,7 +16,7 @@ export default function AdminNav() {
     return pathname === path;
   };
 
-  const navItems = [
+  const navigationItems = [
     { href: '/admin', label: 'Dashboard', icon: HomeIcon },
     { href: '/admin/users', label: 'Users', icon: UsersIcon },
     { href: '/admin/teams', label: 'Teams', icon: UsersIcon },
@@ -24,20 +24,22 @@ export default function AdminNav() {
     { href: '/admin/weeks', label: 'Weeks', icon: CalendarIcon },
     { href: '/admin/games', label: 'Games', icon: TrophyIcon },
     { href: '/admin/leagues', label: 'Leagues', icon: TrophyIcon },
+    { href: '/admin/participations', label: 'Participations', icon: UsersIcon },
     { href: '/admin/wagers', label: 'Wagers', icon: CurrencyDollarIcon },
   ];
 
   return (
     <nav className="bg-gray-800 text-white w-64 min-h-screen p-4">
       <div className="space-y-2">
-        {navItems.map((item) => (
+        {navigationItems.map((item) => (
           <Link
             key={item.href}
             href={item.href}
-            className={`block px-4 py-2 rounded ${
+            className={`flex items-center px-4 py-2 rounded ${
               isActive(item.href) ? 'bg-gray-700' : 'hover:bg-gray-700'
             }`}
           >
+            <item.icon className="h-5 w-5 mr-2" />
             {item.label}
           </Link>
         ))}
