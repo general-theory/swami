@@ -127,12 +127,16 @@ model Game {
   resultTeam      Team?     @relation("ResultTeam", fields: [resultId], references: [id])
   venue           String?
   wagers          Wager[]
+  active          Boolean   @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   @@index([seasonId])
   @@index([weekId])
   @@index([homeId])
   @@index([awayId])
   @@index([resultId])
+  @@index([providerGameId])
 }
 
 model Wager {

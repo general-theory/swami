@@ -28,6 +28,7 @@ export default function CreateGameModal({ isOpen, onClose, onSave }: CreateGameM
     awayPoints: null,
     resultId: null,
     venue: '',
+    active: false,
   });
 
   useEffect(() => {

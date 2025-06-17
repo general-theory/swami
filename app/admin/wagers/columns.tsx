@@ -29,23 +29,43 @@ export const columns: Column<WagerWithDetails>[] = [
     header: 'League',
   },
   {
-    accessorKey: 'game.homeTeam.name',
+    accessorKey: 'game',
     header: 'Game',
+    cell: ({ row }) => {
+      const game = row.original.game;
+      return `${game.homeTeam.name} vs ${game.awayTeam.name}`;
+    },
   },
   {
     accessorKey: 'pick',
     header: 'Pick',
+    cell: ({ row }) => {
+      const pick = row.original.pick;
+      const game = row.original.game;
+      return pick === 'home' ? game.homeTeam.name : game.awayTeam.name;
+    },
   },
   {
     accessorKey: 'amount',
     header: 'Amount',
+    cell: ({ row }) => {
+      return `$${row.original.amount}`;
+    },
   },
   {
     accessorKey: 'won',
     header: 'Won',
+    cell: ({ row }) => {
+      const won = row.original.won;
+      if (won === null) return 'Pending';
+      return won ? 'Yes' : 'No';
+    },
   },
   {
     accessorKey: 'balanceImpact',
     header: 'Balance Impact',
+    cell: ({ row }) => {
+      return `$${row.original.balanceImpact}`;
+    },
   },
 ]; 

@@ -1,10 +1,10 @@
-import { Game } from '../../types/game';
+import type { GameWithRelations } from '../../admin/games/page';
 
 interface DeleteGameModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
-  game: Game;
+  game: GameWithRelations;
 }
 
 export default function DeleteGameModal({ isOpen, onClose, onConfirm, game }: DeleteGameModalProps) {
@@ -15,7 +15,7 @@ export default function DeleteGameModal({ isOpen, onClose, onConfirm, game }: De
       <div className="bg-gray-800 p-6 rounded-lg w-full max-w-md">
         <h3 className="text-lg font-medium text-white mb-4">Delete Game</h3>
         <p className="text-gray-300 mb-4">
-          Are you sure you want to delete the game between {game.homeTeam} and {game.awayTeam}?
+          Are you sure you want to delete the game between {game.homeTeam?.name} and {game.awayTeam?.name}?
           This action cannot be undone.
         </p>
         <div className="mt-6 flex justify-end space-x-3">

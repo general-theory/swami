@@ -22,7 +22,7 @@ interface DataTableProps<T> {
   data: T[];
   onEdit?: (item: T) => void;
   onDelete?: (item: T) => void;
-  isDeleteModalOpen?: boolean;
+  // isDeleteModalOpen?: boolean;
   onDeleteConfirm?: () => void;
   onDeleteCancel?: () => void;
 }
@@ -32,7 +32,7 @@ export default function DataTable<T>({
   data, 
   onEdit, 
   onDelete,
-  isDeleteModalOpen,
+  // isDeleteModalOpen,
   onDeleteConfirm,
   onDeleteCancel
 }: DataTableProps<T>) {
@@ -43,21 +43,18 @@ export default function DataTable<T>({
   const [deleteItem, setDeleteItem] = useState<T | null>(null);
 
   useEffect(() => {
-    console.log('Rendering columns:', columns);
-  }, [columns]);
+    console.log('DataTable received data:', data);
+    console.log('DataTable received columns:', columns);
+  }, [data, columns]);
 
-  const getNestedValue = (obj: T, path: string): unknown => {
+  const getNestedValue = (obj: Record<string, unknown> | undefined, path: string): unknown => {
+    if (!path) return undefined;
     const parts = path.split('.');
     let current: unknown = obj;
-    
     for (const part of parts) {
-      if (current && typeof current === 'object') {
-        current = (current as Record<string, unknown>)[part];
-      } else {
-        return undefined;
-      }
+      if (typeof current !== 'object' || current === null) return undefined;
+      current = (current as Record<string, unknown>)[part];
     }
-    
     return current;
   };
 
@@ -85,8 +82,8 @@ export default function DataTable<T>({
   const sortedData = [...data].sort((a, b) => {
     if (!sortConfig) return 0;
 
-    const aValue = getNestedValue(a, sortConfig.key);
-    const bValue = getNestedValue(b, sortConfig.key);
+    const aValue = getNestedValue(a as Record<string, unknown>, sortConfig.key);
+    const bValue = getNestedValue(b as Record<string, unknown>, sortConfig.key);
 
     if (aValue === null || aValue === undefined) return 1;
     if (bValue === null || bValue === undefined) return -1;
@@ -122,13 +119,13 @@ export default function DataTable<T>({
 
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-full bg-white rounded-lg overflow-hidden">
-        <thead className="bg-gray-50">
+      <table className="min-w-full bg-gray-800 rounded-lg overflow-hidden">
+        <thead className="bg-gray-700">
           <tr>
             {columns.map((column, index) => (
               <th
                 key={index}
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-600"
                 onClick={() => requestSort(column.accessorKey || '')}
               >
                 <div className="flex items-center space-x-1">
@@ -139,58 +136,66 @@ export default function DataTable<T>({
                 </div>
               </th>
             ))}
-            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
               Actions
             </th>
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {sortedData.map((item, rowIndex) => (
-            <tr
-              key={rowIndex}
-              className={cn(
-                'border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted',
-                rowIndex % 2 === 0 ? 'bg-background' : 'bg-muted/50'
-              )}
-            >
-              {columns.map((column, colIndex) => {
-                const value = column.accessorKey 
-                  ? getNestedValue(item, column.accessorKey)
-                  : undefined;
-                return (
-                  <td key={`${rowIndex}-${colIndex}`} className="px-6 py-4 whitespace-nowrap">
-                    {column.cell ? column.cell({ row: { original: item } }) : formatValue(value)}
-                  </td>
-                );
-              })}
-              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                {onEdit && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onEdit(item)}
-                    className="text-blue-600 hover:text-blue-800 mr-4"
-                  >
-                    Edit
-                  </Button>
+        <tbody>
+          {sortedData.map((item, rowIndex) => {
+            console.log('Rendering row:', rowIndex, item);
+            return (
+              <tr
+                key={rowIndex}
+                className={cn(
+                  'border-b border-gray-700 transition-colors hover:bg-gray-700 data-[state=selected]:bg-gray-700',
+                  rowIndex % 2 === 0 ? 'bg-gray-800' : 'bg-gray-800/50'
                 )}
-                {onDelete && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDelete(item)}
-                    className="text-red-600 hover:text-red-800"
-                  >
-                    Delete
-                  </Button>
-                )}
-              </td>
-            </tr>
-          ))}
+              >
+                {columns.map((column, colIndex) => {
+                  let value: React.ReactNode;
+                  if (column.cell) {
+                    value = column.cell({ row: { original: item } });
+                  } else if (column.accessorKey) {
+                    const rawValue = getNestedValue(item as Record<string, unknown>, column.accessorKey);
+                    console.log('Column:', column.header, 'Value:', rawValue, 'Path:', column.accessorKey);
+                    value = formatValue(rawValue);
+                  }
+                  return (
+                    <td key={`${rowIndex}-${colIndex}`} className="px-6 py-4 whitespace-nowrap text-gray-300">
+                      {value}
+                    </td>
+                  );
+                })}
+                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  {onEdit && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onEdit(item)}
+                      className="text-blue-400 hover:text-blue-300 mr-4"
+                    >
+                      Edit
+                    </Button>
+                  )}
+                  {onDelete && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDelete(item)}
+                      className="text-red-400 hover:text-red-300"
+                    >
+                      Delete
+                    </Button>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
 
-      <Dialog open={!!deleteItem || isDeleteModalOpen} onOpenChange={() => {
+      <Dialog open={!!deleteItem} onOpenChange={() => {
         if (onDeleteCancel) {
           onDeleteCancel();
         }

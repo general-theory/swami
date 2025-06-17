@@ -6,14 +6,52 @@ import { Toaster } from '../../components/ui/toaster';
 import CreateGameModal from '../../components/admin/CreateGameModal';
 import EditGameModal from '../../components/admin/EditGameModal';
 import DeleteGameModal from '../../components/admin/DeleteGameModal';
-import { Game, GameCreateData } from '../../types/game';
+import { GameCreateData } from '../../types/game';
 import { Team, Week, Season } from '@prisma/client';
 import DataTable from '../../components/admin/DataTable';
+import { columns } from './columns';
+
+export interface GameWithRelations {
+  id: number;
+  providerGameId: number;
+  seasonId: number;
+  weekId: number;
+  startDate: string;
+  active: boolean;
+  awayId: string;
+  awayPoints: number;
+  awayTeam: {
+    id: string;
+    name: string;
+  };
+  completed: boolean;
+  createdAt: string;
+  homeId: string;
+  homePoints: number;
+  homeTeam: {
+    id: string;
+    name: string;
+  };
+  neutralSite: boolean;
+  resultId: number | null;
+  season: {
+    id: number;
+    name: string;
+  };
+  spread: number | null;
+  startingSpread: number | null;
+  updatedAt: string;
+  venue: string;
+  week: {
+    id: number;
+    week: number;
+  };
+}
 
 export default function GamesAdmin() {
   const { toast } = useToast();
-  const [games, setGames] = useState<Game[]>([]);
-  const [selectedGame, setSelectedGame] = useState<Game | null>(null);
+  const [games, setGames] = useState<GameWithRelations[]>([]);
+  const [selectedGame, setSelectedGame] = useState<GameWithRelations | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -23,6 +61,8 @@ export default function GamesAdmin() {
   const [selectedSeason, setSelectedSeason] = useState<string>('all');
   const [selectedWeek, setSelectedWeek] = useState<string>('all');
   const [selectedTeam, setSelectedTeam] = useState<string>('all');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchGames = useCallback(async () => {
     try {
@@ -31,17 +71,13 @@ export default function GamesAdmin() {
         throw new Error('Failed to fetch games');
       }
       const data = await response.json();
-      console.log('Games data:', data);
       setGames(data);
     } catch (error) {
-      console.error('Error fetching games:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch games. Please try again.",
-        variant: "destructive",
-      });
+      setError(error instanceof Error ? error.message : 'Failed to fetch games');
+    } finally {
+      setIsLoading(false);
     }
-  }, [toast]);
+  }, []);
 
   const fetchTeams = async () => {
     try {
@@ -150,12 +186,12 @@ export default function GamesAdmin() {
     }
   };
 
-  const handleEdit = (game: Game) => {
+  const handleEdit = (game: GameWithRelations) => {
     setSelectedGame(game);
     setIsEditModalOpen(true);
   };
 
-  const handleDeleteClick = (game: Game) => {
+  const handleDeleteClick = (game: GameWithRelations) => {
     setSelectedGame(game);
     setIsDeleteModalOpen(true);
   };
@@ -181,7 +217,7 @@ export default function GamesAdmin() {
     }
   };
 
-  const handleEditSave = async (updatedGame: Game) => {
+  const handleEditSave = async (updatedGame: GameWithRelations) => {
     try {
       const response = await fetch(`/api/admin/games/${updatedGame.id}`, {
         method: 'PUT',
@@ -247,17 +283,13 @@ export default function GamesAdmin() {
     return seasonMatch && weekMatch && teamMatch;
   });
 
-  const columns = [
-    { header: 'Season', accessor: 'seasonName' },
-    { header: 'Week', accessor: 'weekNumber' },
-    { header: 'Home Team', accessor: 'homeTeam' },
-    { header: 'Away Team', accessor: 'awayTeam' },
-    { header: 'Spread', accessor: 'spread' },
-    { header: 'Start Date', accessor: 'startDate' },
-    { header: 'Completed', accessor: 'completed' },
-  ];
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
-  console.log('Columns definition:', columns);
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -351,9 +383,6 @@ export default function GamesAdmin() {
             data={filteredGames}
             onEdit={handleEdit}
             onDelete={handleDeleteClick}
-            isDeleteModalOpen={isDeleteModalOpen}
-            onDeleteConfirm={handleDeleteConfirm}
-            onDeleteCancel={() => setIsDeleteModalOpen(false)}
           />
         </div>
       </div>

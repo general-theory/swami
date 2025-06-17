@@ -137,14 +137,14 @@ export default function WeeksAdmin() {
   };
 
   const columns = [
-    { header: 'Season', accessor: 'seasonName' },
-    { header: 'Week', accessor: 'week' },
-    { header: 'Start Date', accessor: 'startDate' },
-    { header: 'End Date', accessor: 'endDate' },
-    { header: 'Wagers Allowed', accessor: 'wagersAllowed' },
-    { header: 'Wagers Cutoff', accessor: 'wagersCutoff' },
-    { header: 'Active', accessor: 'active' },
-    { header: 'Active Sync', accessor: 'activeSync' },
+    { header: 'Season', accessorKey: 'seasonName' },
+    { header: 'Week', accessorKey: 'week' },
+    { header: 'Start Date', accessorKey: 'startDate' },
+    { header: 'End Date', accessorKey: 'endDate' },
+    { header: 'Wagers Allowed', accessorKey: 'wagersAllowed' },
+    { header: 'Wagers Cutoff', accessorKey: 'wagersCutoff' },
+    { header: 'Active', accessorKey: 'active' },
+    { header: 'Active Sync', accessorKey: 'activeSync' },
   ];
 
   return (
@@ -163,12 +163,6 @@ export default function WeeksAdmin() {
         data={weeks}
         onEdit={handleEdit}
         onDelete={handleDelete}
-        isDeleteModalOpen={isDeleteModalOpen}
-        onDeleteConfirm={handleDeleteConfirm}
-        onDeleteCancel={() => {
-          setIsDeleteModalOpen(false);
-          setWeekToDelete(null);
-        }}
       />
       {selectedWeek && (
         <EditWeekModal
@@ -186,6 +180,37 @@ export default function WeeksAdmin() {
         onClose={() => setIsCreateModalOpen(false)}
         onSave={handleCreateSave}
       />
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteModalOpen && weekToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 p-6 rounded-lg w-full max-w-md">
+            <h3 className="text-lg font-medium text-white mb-4">Delete Week</h3>
+            <p className="text-gray-300 mb-4">
+              Are you sure you want to delete Week {weekToDelete.week}? This action cannot be undone.
+            </p>
+            <div className="mt-6 flex justify-end space-x-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setWeekToDelete(null);
+                }}
+                className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-700 hover:bg-gray-600 rounded-md"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteConfirm}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 

@@ -19,8 +19,6 @@ export default function LeaguesAdmin() {
   const [selectedLeague, setSelectedLeague] = useState<League | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [leagueToDelete, setLeagueToDelete] = useState<League | null>(null);
 
   useEffect(() => {
     const checkAdminAndFetchLeagues = async () => {
@@ -59,9 +57,20 @@ export default function LeaguesAdmin() {
     setIsEditModalOpen(true);
   };
 
-  const handleDelete = (league: League) => {
-    setLeagueToDelete(league);
-    setIsDeleteModalOpen(true);
+  const handleDelete = async (league: League) => {
+    try {
+      const response = await fetch(`/api/admin/leagues/${league.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete league');
+      }
+
+      await fetchLeagues();
+    } catch (error) {
+      console.error('Error deleting league:', error);
+    }
   };
 
   const handleCreate = () => {
@@ -110,29 +119,10 @@ export default function LeaguesAdmin() {
     }
   };
 
-  const handleDeleteConfirm = async () => {
-    if (!leagueToDelete) return;
-    try {
-      const response = await fetch(`/api/admin/leagues/${leagueToDelete.id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete league');
-      }
-
-      await fetchLeagues();
-      setIsDeleteModalOpen(false);
-      setLeagueToDelete(null);
-    } catch (error) {
-      console.error('Error deleting league:', error);
-    }
-  };
-
   const columns = [
-    { header: 'Name', accessor: 'name' },
-    { header: 'Description', accessor: 'description' },
-    { header: 'Active', accessor: 'active' },
+    { header: 'Name', accessorKey: 'name' },
+    { header: 'Description', accessorKey: 'description' },
+    { header: 'Active', accessorKey: 'active' },
   ];
 
   return (
@@ -151,12 +141,6 @@ export default function LeaguesAdmin() {
         data={leagues}
         onEdit={handleEdit}
         onDelete={handleDelete}
-        isDeleteModalOpen={isDeleteModalOpen}
-        onDeleteConfirm={handleDeleteConfirm}
-        onDeleteCancel={() => {
-          setIsDeleteModalOpen(false);
-          setLeagueToDelete(null);
-        }}
       />
       {selectedLeague && (
         <EditLeagueModal

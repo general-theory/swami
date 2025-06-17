@@ -1,12 +1,13 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Game, GameFormData, Season, Week, Team } from '../../types/game';
+import { GameFormData, Season, Week, Team } from '../../types/game';
+import type { GameWithRelations } from '../../admin/games/page';
 
 interface EditGameModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (game: Game) => void;
-  game: Game;
+  onSave: (game: GameWithRelations) => void;
+  game: GameWithRelations;
 }
 
 export default function EditGameModal({ game, isOpen, onClose, onSave }: EditGameModalProps) {
@@ -27,8 +28,9 @@ export default function EditGameModal({ game, isOpen, onClose, onSave }: EditGam
     startingSpread: game?.startingSpread ?? null,
     awayId: game?.awayId ?? '',
     awayPoints: game?.awayPoints ?? null,
-    resultId: game?.resultId ?? null,
+    resultId: game?.resultId !== null && game?.resultId !== undefined ? String(game.resultId) : null,
     venue: game?.venue ?? '',
+    active: game?.active ?? false,
   });
 
   useEffect(() => {
@@ -50,6 +52,7 @@ export default function EditGameModal({ game, isOpen, onClose, onSave }: EditGam
         setTeams(teamsData);
       } catch (error) {
         console.error('Error fetching data:', error);
+        // Optionally show a toast or error message here
       }
     };
 
@@ -57,6 +60,7 @@ export default function EditGameModal({ game, isOpen, onClose, onSave }: EditGam
       fetchData();
       setFormData({
         ...game,
+        resultId: game.resultId !== null && game.resultId !== undefined ? String(game.resultId) : null,
         startDate: new Date(game.startDate).toISOString().slice(0, 16)
       });
     }
@@ -73,6 +77,7 @@ export default function EditGameModal({ game, isOpen, onClose, onSave }: EditGam
         setWeeks(data);
       } catch (error) {
         console.error('Error fetching weeks:', error);
+        // Optionally show a toast or error message here
       }
     };
 
@@ -81,10 +86,28 @@ export default function EditGameModal({ game, isOpen, onClose, onSave }: EditGam
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData as Game);
-    onClose();
+    try {
+      const response = await fetch(`/api/admin/games/${formData.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update game');
+      }
+
+      const updatedGame = await response.json();
+      onSave(updatedGame);
+      onClose();
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      // Optionally show a toast or error message here
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -107,6 +130,17 @@ export default function EditGameModal({ game, isOpen, onClose, onSave }: EditGam
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-gray-800 p-6 rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl font-bold mb-4 text-white">Edit Game</h2>
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-300">Active</label>
+          <input
+            type="checkbox"
+            name="active"
+            checked={formData.active ?? false}
+            onChange={e => setFormData(prev => ({ ...prev, active: e.target.checked }))}
+            className="h-4 w-4 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-500"
+          />
+          <span className="ml-2 text-gray-300">{formData.active ? 'Active' : 'Inactive'}</span>
+        </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="form-control">

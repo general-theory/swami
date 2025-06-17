@@ -50,11 +50,11 @@ export interface WagerWithDetails {
   game: {
     id: number;
     homeTeam: {
-      id: number;
+      id: string;
       name: string;
     };
     awayTeam: {
-      id: number;
+      id: string;
       name: string;
     };
     season: {
@@ -69,6 +69,14 @@ export interface WagerWithDetails {
   league: {
     id: number;
     name: string;
+  };
+  season: {
+    id: number;
+    name: string;
+  };
+  week: {
+    id: number;
+    week: number;
   };
 }
 
@@ -91,12 +99,23 @@ function WagersAdminContent() {
       if (!response.ok) {
         throw new Error('Failed to fetch wagers');
       }
-      return response.json();
+      const data = await response.json();
+      console.log('Raw API response:', JSON.stringify(data, null, 2));
+      console.log('First wager structure:', JSON.stringify(data[0], null, 2));
+      console.log('Data type:', typeof data);
+      console.log('Is array:', Array.isArray(data));
+      console.log('Length:', data.length);
+      return data;
     }
   });
 
   useEffect(() => {
     if (wagersData) {
+      console.log('Setting wagers state:', JSON.stringify(wagersData, null, 2));
+      console.log('First wager in state:', JSON.stringify(wagersData[0], null, 2));
+      console.log('Data type:', typeof wagersData);
+      console.log('Is array:', Array.isArray(wagersData));
+      console.log('Length:', wagersData.length);
       setWagers(wagersData);
     }
   }, [wagersData]);
@@ -196,7 +215,7 @@ function WagersAdminContent() {
   return (
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-blue-200">Manage Wagers</h1>
+        <h1 className="text-2xl font-bold text-blue-400">Manage Wagers</h1>
         <Button
           onClick={() => setIsCreateModalOpen(true)}
           className="bg-blue-600 hover:bg-blue-700 text-white"
@@ -225,12 +244,14 @@ function WagersAdminContent() {
           </AlertDescription>
         </Alert>
       ) : (
-        <DataTable<WagerWithDetails>
-          columns={columns}
-          data={wagers}
-          onEdit={handleEdit}
-          onDelete={handleDeleteClick}
-        />
+        <>
+          <DataTable<WagerWithDetails>
+            columns={columns}
+            data={wagers}
+            onEdit={handleEdit}
+            onDelete={handleDeleteClick}
+          />
+        </>
       )}
 
       <CreateWagerModal

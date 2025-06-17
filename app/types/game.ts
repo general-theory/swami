@@ -2,23 +2,35 @@ export interface Game {
   id: number;
   providerGameId: number | null;
   seasonId: number;
-  seasonName: string;
   weekId: number;
-  weekNumber: number;
   startDate: string;
   completed: boolean;
   neutralSite: boolean;
+  active: boolean;
   homeId: string;
-  homeTeam: string;
   homePoints: number | null;
   spread: number | null;
   startingSpread: number | null;
   awayId: string;
-  awayTeam: string;
   awayPoints: number | null;
   resultId: string | null;
-  resultTeam: string | null;
   venue: string;
+  season: {
+    id: number;
+    name: string;
+  };
+  week: {
+    id: number;
+    week: number;
+  };
+  homeTeam: {
+    id: string;
+    name: string;
+  };
+  awayTeam: {
+    id: string;
+    name: string;
+  };
   [key: string]: unknown;
 }
 
@@ -30,6 +42,7 @@ export interface GameFormData {
   startDate: string;
   completed: boolean;
   neutralSite: boolean;
+  active: boolean;
   homeId: string;
   homePoints: number | null;
   spread: number | null;

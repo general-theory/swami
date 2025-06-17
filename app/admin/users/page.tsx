@@ -136,12 +136,12 @@ export default function UsersAdmin() {
   };
 
   const columns = [
-    { header: 'Email', accessor: 'email' },
-    { header: 'First Name', accessor: 'firstName' },
-    { header: 'Last Name', accessor: 'lastName' },
-    { header: 'Nickname', accessor: 'nickName' },
-    { header: 'Admin', accessor: 'admin' },
-    { header: 'Clerk ID', accessor: 'clerkId' },
+    { header: 'Email', accessorKey: 'email' },
+    { header: 'First Name', accessorKey: 'firstName' },
+    { header: 'Last Name', accessorKey: 'lastName' },
+    { header: 'Nickname', accessorKey: 'nickName' },
+    { header: 'Admin', accessorKey: 'admin' },
+    { header: 'Clerk ID', accessorKey: 'clerkId' },
   ];
 
   return (
@@ -160,12 +160,6 @@ export default function UsersAdmin() {
         data={users}
         onEdit={handleEdit}
         onDelete={handleDelete}
-        isDeleteModalOpen={isDeleteModalOpen}
-        onDeleteConfirm={handleDeleteConfirm}
-        onDeleteCancel={() => {
-          setIsDeleteModalOpen(false);
-          setUserToDelete(null);
-        }}
       />
       {selectedUser && (
         <EditUserModal
@@ -183,6 +177,37 @@ export default function UsersAdmin() {
         onClose={() => setIsCreateModalOpen(false)}
         onSave={handleCreateSave}
       />
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteModalOpen && userToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 p-6 rounded-lg w-full max-w-md">
+            <h3 className="text-lg font-medium text-white mb-4">Delete User</h3>
+            <p className="text-gray-300 mb-4">
+              Are you sure you want to delete the user &quot;{userToDelete.firstName} {userToDelete.lastName}&quot;? This action cannot be undone.
+            </p>
+            <div className="mt-6 flex justify-end space-x-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setUserToDelete(null);
+                }}
+                className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-700 hover:bg-gray-600 rounded-md"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteConfirm}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 

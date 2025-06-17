@@ -69,6 +69,7 @@ export async function GET() {
       },
     });
 
+    console.log('API Response:', JSON.stringify(wagers, null, 2));
     return NextResponse.json(wagers);
   } catch (error) {
     console.error('Error fetching wagers:', error);
