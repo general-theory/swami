@@ -9,6 +9,8 @@ import { useToast } from "../components/ui/use-toast";
 
 interface Game {
   id: number;
+  weekId: number;
+  seasonId: number;
   homeTeam: {
     id: number;
     name: string;
@@ -90,8 +92,12 @@ function WagerModal({ open, onClose, game, leagueId, onWagerSuccess, existingWag
       if (!res.ok) throw new Error(await res.text());
       onWagerSuccess();
       onClose();
-    } catch (e: any) {
-      setError(e.message || 'Error placing wager');
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        setError(e.message || 'Error placing wager');
+      } else {
+        setError('Error placing wager');
+      }
     } finally {
       setLoading(false);
     }
@@ -193,6 +199,7 @@ export default function Wager() {
         setLeagues(data);
         if (data.length > 0) setSelectedLeagueId(data[0].id);
       } catch (e) {
+        console.error('Error fetching leagues:', e);
         setLeagues([]);
       } finally {
         setLoadingLeagues(false);
@@ -217,6 +224,7 @@ export default function Wager() {
       const data = await res.json();
       setWagers(data);
     } catch (e) {
+      console.error('Error fetching wagers:', e);
       setWagers([]);
     }
   }, [selectedLeagueId, games]);
@@ -242,6 +250,7 @@ export default function Wager() {
         const data = await res.json();
         setParticipation(data);
       } catch (e) {
+        console.error('Error fetching participation:', e);
         setParticipation(null);
       }
     };

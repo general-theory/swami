@@ -44,6 +44,7 @@ export async function GET() {
       select: {
         id: true,
         weekId: true,
+        seasonId: true,
         homeTeam: {
           select: {
             id: true,
