@@ -9,45 +9,34 @@ export async function GET() {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    // Get the current user
-    const currentUser = await prisma.user.findUnique({
+    // Find the internal user record by Clerk ID
+    const user = await prisma.user.findUnique({
       where: { clerkId: userId },
+      select: { id: true }
     });
-
-    if (!currentUser) {
+    if (!user) {
       return new NextResponse('User not found', { status: 404 });
     }
 
-    // Get active season
-    const activeSeason = await prisma.season.findFirst({
-      where: { active: true },
-      select: { id: true }
-    });
-
-    if (!activeSeason) {
-      return NextResponse.json([]);
-    }
-
-    // Get user's active participations
-    const activeParticipations = await prisma.userParticipation.findMany({
+    // Get active participations for this user, include league info
+    const participations = await prisma.userParticipation.findMany({
       where: {
-        userId: currentUser.id,
-        seasonId: activeSeason.id,
+        userId: user.id,
         active: true
       },
       include: {
         league: {
           select: {
             id: true,
-            name: true,
-            description: true,
-            active: true
+            name: true
           }
         }
       }
     });
 
-    return NextResponse.json(activeParticipations.map(p => p.league));
+    // Map to just league info
+    const leagues = participations.map(p => p.league);
+    return NextResponse.json(leagues);
   } catch (error) {
     console.error('Error fetching active leagues:', error);
     return new NextResponse('Internal Server Error', { status: 500 });

@@ -25,7 +25,7 @@ export async function GET() {
         seasonId: activeSeason.id,
         active: true
       },
-      select: { id: true }
+      select: { id: true, wagersAllowed: true }
     });
 
     if (!activeWeek) {
@@ -36,9 +36,14 @@ export async function GET() {
     const games = await prisma.game.findMany({
       where: {
         weekId: activeWeek.id,
-        completed: false
+        active: true
       },
-      include: {
+      orderBy: {
+        startDate: 'asc'
+      },
+      select: {
+        id: true,
+        weekId: true,
         homeTeam: {
           select: {
             id: true,
@@ -52,14 +57,20 @@ export async function GET() {
             name: true,
             logo: true
           }
-        }
-      },
-      orderBy: {
-        startDate: 'asc'
+        },
+        spread: true,
+        startDate: true,
+        venue: true,
+        startingSpread: true,
+        active: true,
+        neutralSite: true
       }
     });
 
-    return NextResponse.json(games);
+    // Add seasonId to each game object
+    const gamesWithSeason = games.map(g => ({ ...g, seasonId: activeSeason.id }));
+    // Return both games and wagersAllowed
+    return NextResponse.json({ games: gamesWithSeason, wagersAllowed: activeWeek.wagersAllowed });
   } catch (error) {
     console.error('Error fetching active games:', error);
     return new NextResponse('Internal Server Error', { status: 500 });
