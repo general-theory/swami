@@ -7,7 +7,6 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    //forcing commit
     const { userId } = await auth();
     if (!userId) {
       return new NextResponse('Unauthorized', { status: 401 });
