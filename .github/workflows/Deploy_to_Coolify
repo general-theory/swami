@@ -9,12 +9,6 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
 
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      CFBD_API_KEY: ${{ secrets.CFBD_API_KEY }}
-      NEXT_PUBLIC_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_PUBLISHABLE_KEY }}
-      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-
     steps:
       - uses: actions/checkout@v4
 
@@ -22,13 +16,7 @@ jobs:
         run: echo "${{ secrets.CR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Build Docker image
-        run: |
-          docker build \
-            --build-arg DATABASE_URL=${{ secrets.DATABASE_URL }} \
-            --build-arg CFBD_API_KEY=${{ secrets.CFBD_API_KEY }} \
-            --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }} \
-            --build-arg CLERK_SECRET_KEY=${{ secrets.CLERK_SECRET_KEY }} \
-            -t ghcr.io/${{ github.repository_owner }}/my-next-app:latest .
+        run: docker build -t ghcr.io/${{ github.repository_owner }}/my-next-app:latest .
 
       - name: Push Docker image
         run: docker push ghcr.io/${{ github.repository_owner }}/my-next-app:latest

@@ -24,6 +24,21 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Accept build arguments for environment variables
+ARG DATABASE_URL
+ARG CFBD_API_KEY
+ARG NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+ARG CLERK_SECRET_KEY
+
+# Set environment variables for build
+ENV DATABASE_URL=$DATABASE_URL
+ENV CFBD_API_KEY=$CFBD_API_KEY
+ENV NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+ENV CLERK_SECRET_KEY=$CLERK_SECRET_KEY
+
+# Debug: Print environment variables (remove in production)
+RUN echo "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is set: $([ -n "$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY" ] && echo "YES" || echo "NO")"
+
 # Generate Prisma client
 RUN npx prisma generate
 
