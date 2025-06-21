@@ -18,7 +18,8 @@ export async function GET(request: Request) {
       userId: true,
       gameId: true,
       pick: true,
-      amount: true
+      amount: true,
+      balanceImpact: true
     }
   });
 

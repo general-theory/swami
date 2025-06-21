@@ -9,13 +9,29 @@ export async function GET(
   if (!weekId) return new NextResponse('Missing weekId', { status: 400 });
 
   const games = await prisma.game.findMany({
-    where: { weekId: Number(weekId) },
+    where: { 
+      weekId: Number(weekId),
+      active: true // Only return active games
+    },
     select: {
       id: true,
       weekId: true,
       seasonId: true,
-      homeTeam: { select: { id: true, name: true } },
-      awayTeam: { select: { id: true, name: true } },
+      completed: true,
+      homeTeam: { 
+        select: { 
+          id: true, 
+          name: true,
+          logo: true
+        } 
+      },
+      awayTeam: { 
+        select: { 
+          id: true, 
+          name: true,
+          logo: true
+        } 
+      },
       spread: true,
       homePoints: true,
       awayPoints: true,
