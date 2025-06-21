@@ -111,4 +111,9 @@ export async function GET() {
       { status: 500 }
     );
   }
+}
+
+export async function POST() {
+  // POST method does the same thing as GET for sync operations
+  return GET();
 } 
