@@ -95,7 +95,6 @@ export default function ProfilePage() {
       });
 
       if (response.ok) {
-        const updatedUser = await response.json();
         setOriginalData(formData);
         setIsEditing(false);
         toast({
