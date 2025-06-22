@@ -246,7 +246,14 @@ export default function Wager() {
       }
       try {
         const res = await fetch(`/api/participations?leagueId=${selectedLeagueId}&seasonId=${seasonId}`);
-        if (!res.ok) throw new Error('Failed to fetch participation');
+        if (!res.ok) {
+          if (res.status === 404) {
+            // User is not participating in this league/season
+            setParticipation(null);
+            return;
+          }
+          throw new Error('Failed to fetch participation');
+        }
         const data = await res.json();
         setParticipation(data);
       } catch (e) {
@@ -257,7 +264,10 @@ export default function Wager() {
     fetchParticipation();
   }, [selectedLeagueId, games]);
 
+  // Calculate bet limits using the same logic as standings page
   const { minBet, maxBet } = participation ? calculateBetLimits(participation.balance) : { minBet: 0, maxBet: 0 };
+  
+  // Calculate current bet total for the selected league and week
   const currentBetTotal = wagers.reduce((sum, w) => sum + w.amount, 0);
 
   if (!isLoaded || !isSignedIn) {
@@ -299,9 +309,19 @@ export default function Wager() {
       {!wagersAllowed && (
         <div className="mb-4 p-4 bg-error text-white text-center rounded font-bold text-lg">Wagers Locked</div>
       )}
+      
+      {!participation && selectedLeagueId && games.length > 0 && (
+        <div className="mb-4 p-4 bg-warning text-warning-content text-center rounded font-bold text-lg">
+          You are not participating in this league for the current season.
+        </div>
+      )}
+      
       <div className="flex items-center gap-4 mb-6">
         <h1 className="text-4xl font-bold whitespace-nowrap">Place Your Wagers</h1>
         <div className="flex-1 flex justify-center gap-2">
+          <div className="bg-base-200 rounded px-3 py-1 text-sm">
+            <span className="font-semibold">Balance:</span> ${participation?.balance || 0}
+          </div>
           <div className="bg-base-200 rounded px-3 py-1 text-sm">
             <span className="font-semibold">Min Bet:</span> ${minBet}
           </div>

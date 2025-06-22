@@ -9,20 +9,6 @@ import { Label } from "../components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { useToast } from "../components/ui/use-toast";
 
-// interface User {
-//   id: string;
-//   firstName: string;
-//   lastName: string;
-//   nickName: string;
-//   email: string;
-//   favTeamId: string | null;
-//   favoriteTeam?: {
-//     id: string;
-//     name: string;
-//     logo: string;
-//   };
-// }
-
 interface Team {
   id: string;
   name: string;
@@ -32,7 +18,6 @@ interface Team {
 export default function ProfilePage() {
   const { userId } = useAuth();
   const { toast } = useToast();
-  // const [user, setUser] = useState<User | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -110,8 +95,7 @@ export default function ProfilePage() {
       });
 
       if (response.ok) {
-        // const updatedUser = await response.json();
-        // setUser(updatedUser);
+        const updatedUser = await response.json();
         setOriginalData(formData);
         setIsEditing(false);
         toast({
@@ -142,94 +126,138 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="loading loading-spinner loading-lg"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="loading loading-spinner loading-lg text-primary"></div>
+          <p className="text-muted-foreground">Loading profile...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <Card>
-        <CardHeader>
-          <CardTitle>Profile Settings</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
-                <Input
-                  id="firstName"
-                  value={formData.firstName}
-                  onChange={(e) => handleChange('firstName', e.target.value)}
-                  placeholder="Enter your first name"
-                  disabled={!isEditing}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input
-                  id="lastName"
-                  value={formData.lastName}
-                  onChange={(e) => handleChange('lastName', e.target.value)}
-                  placeholder="Enter your last name"
-                  disabled={!isEditing}
-                />
-              </div>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+            Profile Settings
+          </h1>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Manage your personal information and preferences
+          </p>
+        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="nickName">Display Name</Label>
-              <Input
-                id="nickName"
-                value={formData.nickName}
-                onChange={(e) => handleChange('nickName', e.target.value)}
-                placeholder="Enter your display name"
-                disabled={!isEditing}
-              />
-            </div>
+        <div className="max-w-2xl mx-auto">
+          <Card className="bg-white dark:bg-slate-800 border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+                <span className="text-3xl">👤</span>
+                Personal Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName" className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                      First Name
+                    </Label>
+                    <Input
+                      id="firstName"
+                      value={formData.firstName}
+                      onChange={(e) => handleChange('firstName', e.target.value)}
+                      placeholder="Enter your first name"
+                      disabled={!isEditing}
+                      className="bg-white dark:bg-slate-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName" className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                      Last Name
+                    </Label>
+                    <Input
+                      id="lastName"
+                      value={formData.lastName}
+                      onChange={(e) => handleChange('lastName', e.target.value)}
+                      placeholder="Enter your last name"
+                      disabled={!isEditing}
+                      className="bg-white dark:bg-slate-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="favTeamId">Favorite Team</Label>
-              <Select
-                value={formData.favTeamId || undefined}
-                onValueChange={(value) => handleChange('favTeamId', value)}
-                disabled={!isEditing}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select your favorite team" />
-                </SelectTrigger>
-                <SelectContent>
-                  {teams.map((team) => (
-                    <SelectItem key={team.id} value={team.id}>
-                      {team.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="nickName" className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                    Display Name
+                  </Label>
+                  <Input
+                    id="nickName"
+                    value={formData.nickName}
+                    onChange={(e) => handleChange('nickName', e.target.value)}
+                    placeholder="Enter your display name"
+                    disabled={!isEditing}
+                    className="bg-white dark:bg-slate-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
+                  />
+                </div>
 
-            <div className="flex justify-end space-x-2">
-              {!isEditing ? (
-                <Button type="button" onClick={handleEdit}>
-                  Edit Profile
-                </Button>
-              ) : (
-                <>
-                  <Button type="button" variant="outline" onClick={handleCancel}>
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={saving}>
-                    {saving ? 'Saving...' : 'Save Changes'}
-                  </Button>
-                </>
-              )}
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+                <div className="space-y-2">
+                  <Label htmlFor="favTeamId" className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                    Favorite Team
+                  </Label>
+                  <Select
+                    value={formData.favTeamId || undefined}
+                    onValueChange={(value) => handleChange('favTeamId', value)}
+                    disabled={!isEditing}
+                  >
+                    <SelectTrigger className="bg-white dark:bg-slate-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white">
+                      <SelectValue placeholder="Select your favorite team" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {teams.map((team) => (
+                        <SelectItem key={team.id} value={team.id}>
+                          {team.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+                  {!isEditing ? (
+                    <Button 
+                      type="button" 
+                      onClick={handleEdit}
+                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                    >
+                      Edit Profile
+                    </Button>
+                  ) : (
+                    <>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={handleCancel}
+                        className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200"
+                      >
+                        Cancel
+                      </Button>
+                      <Button 
+                        type="submit" 
+                        disabled={saving}
+                        className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                      >
+                        {saving ? 'Saving...' : 'Save Changes'}
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 } 

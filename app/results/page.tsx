@@ -200,10 +200,17 @@ function ResultsView({ leagueId, weekId }: { leagueId: number | null; weekId: nu
         // Fetch users for league/season
         const seasonId = gamesData[0]?.seasonId;
         if (seasonId) {
-          const usersRes = await fetch(`/api/participations?leagueId=${leagueId}&seasonId=${seasonId}`);
-          if (!usersRes.ok) throw new Error('Failed to fetch users');
-          const usersData = await usersRes.json();
-          setUsers(usersData);
+          const usersRes = await fetch(`/api/participations/all?leagueId=${leagueId}&seasonId=${seasonId}`);
+          if (!usersRes.ok) {
+            console.error('Failed to fetch users:', usersRes.status, usersRes.statusText);
+            setUsers([]);
+          } else {
+            const usersData = await usersRes.json();
+            console.log('Users data received:', usersData);
+            setUsers(Array.isArray(usersData) ? usersData : []);
+          }
+        } else {
+          setUsers([]);
         }
 
         // Fetch wagers for league/week
@@ -272,7 +279,12 @@ function ResultsView({ leagueId, weekId }: { leagueId: number | null; weekId: nu
   });
 
   // Calculate user summaries
-  const userSummaries: UserSummary[] = users.map(user => {
+  const userSummaries: UserSummary[] = (users || []).map(user => {
+    if (!user || !user.id) {
+      console.warn('Invalid user object:', user);
+      return null;
+    }
+    
     const userWagers = wagers.filter(w => w.userId === user.id);
     const totalWagered = userWagers.reduce((sum, w) => sum + w.amount, 0);
     const gamesWagered = new Set(userWagers.map(w => w.gameId)).size;
@@ -285,7 +297,7 @@ function ResultsView({ leagueId, weekId }: { leagueId: number | null; weekId: nu
       balanceImpact,
       wagers: userWagers
     };
-  });
+  }).filter(Boolean) as UserSummary[];
 
   const totalLeagueWagered = userSummaries.reduce((sum, u) => sum + u.totalWagered, 0);
 
@@ -295,7 +307,7 @@ function ResultsView({ leagueId, weekId }: { leagueId: number | null; weekId: nu
       <div className="stats shadow">
         <div className="stat">
           <div className="stat-title">Total Wagered</div>
-          <div className="stat-value text-primary">${totalLeagueWagered.toLocaleString()}</div>
+          <div className="stat-value text-primary">♠{totalLeagueWagered.toLocaleString()}</div>
         </div>
         <div className="stat">
           <div className="stat-title">Active Players</div>
@@ -344,15 +356,15 @@ function ResultsView({ leagueId, weekId }: { leagueId: number | null; weekId: nu
                         {summary.user.nickName || `${summary.user.firstName} ${summary.user.lastName}`}
                       </td>
                       <td className="text-center">{summary.gamesWagered}</td>
-                      <td className="text-center font-semibold">${summary.totalWagered.toLocaleString()}</td>
+                      <td className="text-center font-semibold">♠{summary.totalWagered.toLocaleString()}</td>
                       <td className="text-center">
-                        ${summary.gamesWagered > 0 ? Math.round(summary.totalWagered / summary.gamesWagered) : 0}
+                        ♠{summary.gamesWagered > 0 ? Math.round(summary.totalWagered / summary.gamesWagered) : 0}
                       </td>
                       <td className={`text-center font-semibold ${
                         summary.balanceImpact > 0 ? 'text-green-600' : 
                         summary.balanceImpact < 0 ? 'text-red-600' : 'text-gray-600'
                       }`}>
-                        ${summary.balanceImpact.toLocaleString()}
+                        ♠{summary.balanceImpact.toLocaleString()}
                       </td>
                     </tr>
                   ))}
@@ -433,17 +445,17 @@ function GameCard({ summary }: { summary: GameSummary }) {
 
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
-            <span>Away: ${awayWagered.toLocaleString()}</span>
+            <span>Away: ♠{awayWagered.toLocaleString()}</span>
             <span className="font-medium">{awayPercentage}%</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span>Home: ${homeWagered.toLocaleString()}</span>
+            <span>Home: ♠{homeWagered.toLocaleString()}</span>
             <span className="font-medium">{homePercentage}%</span>
           </div>
           <div className="border-t pt-2">
             <div className="flex justify-between font-semibold">
               <span>Total:</span>
-              <span>${totalWagered.toLocaleString()}</span>
+              <span>♠{totalWagered.toLocaleString()}</span>
             </div>
           </div>
         </div>
@@ -515,7 +527,7 @@ function UserWagersCard({ userSummary, games }: { userSummary: UserSummary; game
                   )}
                 </div>
                 <div className="text-right">
-                  <div className="font-semibold">${wager.amount.toLocaleString()}</div>
+                  <div className="font-semibold">♠{wager.amount.toLocaleString()}</div>
                   <div className="text-xs text-gray-500">
                     {game.awayPoints !== null && game.homePoints !== null 
                       ? `${game.awayPoints}-${game.homePoints}`

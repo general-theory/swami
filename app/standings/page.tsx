@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import StandingsTable from '../components/StandingsTable';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 
 interface League {
   id: number;
@@ -73,36 +75,104 @@ export default function Standings() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="loading loading-spinner loading-lg"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="loading loading-spinner loading-lg text-primary"></div>
+          <p className="text-muted-foreground">Loading standings...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Standings</h1>
-        <div className="flex items-center space-x-4">
-          <label htmlFor="league-filter" className="text-base font-semibold text-white">
-            Filter by League:
-          </label>
-          <select
-            id="league-filter"
-            value={selectedLeagueId}
-            onChange={(e) => setSelectedLeagueId(e.target.value === 'all' ? 'all' : Number(e.target.value))}
-            className="block w-64 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-          >
-            <option value="all">All Leagues</option>
-            {userLeagues.map((league) => (
-              <option key={league.id} value={league.id}>
-                {league.name}
-              </option>
-            ))}
-          </select>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+            Standings
+          </h1>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Track your performance and see how you rank against other players
+          </p>
         </div>
+
+        {/* Filter Section */}
+        <Card className="mb-8 bg-white dark:bg-slate-800 border-0 shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white">
+              Filter Results
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+              <div className="flex items-center space-x-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-200 whitespace-nowrap">
+                  League:
+                </label>
+                <Select
+                  value={selectedLeagueId.toString()}
+                  onValueChange={(value) => setSelectedLeagueId(value === 'all' ? 'all' : Number(value))}
+                >
+                  <SelectTrigger className="w-full sm:w-64">
+                    <SelectValue placeholder="Select a league" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Leagues</SelectItem>
+                    {userLeagues.map((league) => (
+                      <SelectItem key={league.id} value={league.id.toString()}>
+                        {league.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* Stats Summary */}
+              <div className="flex flex-wrap gap-4 ml-auto">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                    {filteredStandings.length}
+                  </div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+                    Players
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                    ${Math.max(...filteredStandings.map(s => s.balance), 0).toLocaleString()}
+                  </div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+                    Top Balance
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Standings Table */}
+        <Card className="bg-white dark:bg-slate-800 border-0 shadow-lg">
+          <CardContent className="p-0">
+            {filteredStandings.length > 0 ? (
+              <StandingsTable columns={columns} data={filteredStandings} />
+            ) : (
+              <div className="text-center py-16">
+                <div className="text-6xl mb-4">📊</div>
+                <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
+                  No Standings Available
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300">
+                  {selectedLeagueId === 'all' 
+                    ? 'No active leagues found. Join a league to see standings.'
+                    : 'No players found in this league.'
+                  }
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
-      <StandingsTable columns={columns} data={filteredStandings} />
     </div>
   );
 } 
