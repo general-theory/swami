@@ -9,19 +9,19 @@ import { Label } from "../components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { useToast } from "../components/ui/use-toast";
 
-interface User {
-  id: string;
-  firstName: string;
-  lastName: string;
-  nickName: string;
-  email: string;
-  favTeamId: string | null;
-  favoriteTeam?: {
-    id: string;
-    name: string;
-    logo: string;
-  };
-}
+// interface User {
+//   id: string;
+//   firstName: string;
+//   lastName: string;
+//   nickName: string;
+//   email: string;
+//   favTeamId: string | null;
+//   favoriteTeam?: {
+//     id: string;
+//     name: string;
+//     logo: string;
+//   };
+// }
 
 interface Team {
   id: string;
@@ -32,7 +32,7 @@ interface Team {
 export default function ProfilePage() {
   const { userId } = useAuth();
   const { toast } = useToast();
-  const [user, setUser] = useState<User | null>(null);
+  // const [user, setUser] = useState<User | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -59,7 +59,7 @@ export default function ProfilePage() {
         const userResponse = await fetch('/api/user');
         if (userResponse.ok) {
           const userData = await userResponse.json();
-          setUser(userData);
+          // setUser(userData);
           const data = {
             firstName: userData.firstName || '',
             lastName: userData.lastName || '',
@@ -110,8 +110,8 @@ export default function ProfilePage() {
       });
 
       if (response.ok) {
-        const updatedUser = await response.json();
-        setUser(updatedUser);
+        // const updatedUser = await response.json();
+        // setUser(updatedUser);
         setOriginalData(formData);
         setIsEditing(false);
         toast({
