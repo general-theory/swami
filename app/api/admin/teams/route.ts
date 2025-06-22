@@ -19,6 +19,13 @@ export async function GET() {
     }
 
     const teams = await prisma.team.findMany({
+      select: {
+        id: true,
+        name: true,
+        conference: true,
+        mascot: true,
+        abbreviation: true,
+      },
       orderBy: {
         name: 'asc',
       },
@@ -27,7 +34,10 @@ export async function GET() {
     return NextResponse.json(teams);
   } catch (error) {
     console.error('Error fetching teams:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    return NextResponse.json(
+      { error: 'Error fetching teams' },
+      { status: 500 }
+    );
   }
 }
 

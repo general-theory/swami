@@ -18,6 +18,7 @@ export async function GET() {
         nickName: true,
         admin: true,
         clerkId: true,
+        favTeamId: true,
       },
     });
 
@@ -45,15 +46,17 @@ export async function POST(request: Request) {
     }
 
     const data = await request.json();
-    const { email, firstName, lastName, admin, clerkId } = data;
+    const { email, firstName, lastName, nickName, admin, clerkId, favTeamId } = data;
 
     const newUser = await prisma.user.create({
       data: {
         email,
         firstName,
         lastName,
+        nickName,
         admin,
         clerkId,
+        favTeamId,
       },
     });
 

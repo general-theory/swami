@@ -1,6 +1,14 @@
 'use client';
 import { useState, useEffect } from 'react';
 
+interface Team {
+  id: string;
+  name: string;
+  conference: string;
+  mascot: string;
+  abbreviation: string;
+}
+
 interface User {
   id: number;
   email: string;
@@ -9,6 +17,7 @@ interface User {
   nickName: string;
   admin: boolean;
   clerkId: string;
+  favTeamId?: string;
   [key: string]: unknown;
 }
 
@@ -21,10 +30,32 @@ interface EditUserModalProps {
 
 export default function EditUserModal({ user, isOpen, onClose, onSave }: EditUserModalProps) {
   const [editedUser, setEditedUser] = useState<User>(user);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [loadingTeams, setLoadingTeams] = useState(false);
 
   useEffect(() => {
     setEditedUser(user);
   }, [user]);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchTeams();
+    }
+  }, [isOpen]);
+
+  const fetchTeams = async () => {
+    setLoadingTeams(true);
+    try {
+      const response = await fetch('/api/admin/teams');
+      if (!response.ok) throw new Error('Failed to fetch teams');
+      const data = await response.json();
+      setTeams(data);
+    } catch (error) {
+      console.error('Error fetching teams:', error);
+    } finally {
+      setLoadingTeams(false);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,6 +117,22 @@ export default function EditUserModal({ user, isOpen, onClose, onSave }: EditUse
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               required
             />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Favorite Team</label>
+            <select
+              value={editedUser.favTeamId || ''}
+              onChange={(e) => setEditedUser({ ...editedUser, favTeamId: e.target.value || undefined })}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              disabled={loadingTeams}
+            >
+              <option value="">Select a team (optional)</option>
+              {teams.map((team) => (
+                <option key={team.id} value={team.id}>
+                  {team.name} ({team.conference})
+                </option>
+              ))}
+            </select>
           </div>
           <div className="flex items-center">
             <input

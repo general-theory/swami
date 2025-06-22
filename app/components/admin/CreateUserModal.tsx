@@ -1,10 +1,18 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+
+interface Team {
+  id: string;
+  name: string;
+  conference: string;
+  mascot: string;
+  abbreviation: string;
+}
 
 interface CreateUserModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (user: { email: string; firstName: string; lastName: string; nickName: string; admin: boolean; clerkId: string }) => void;
+  onSave: (user: { email: string; firstName: string; lastName: string; nickName: string; admin: boolean; clerkId: string; favTeamId?: string }) => void;
 }
 
 export default function CreateUserModal({ isOpen, onClose, onSave }: CreateUserModalProps) {
@@ -14,25 +22,53 @@ export default function CreateUserModal({ isOpen, onClose, onSave }: CreateUserM
     lastName: '',
     nickName: '',
     admin: false,
-    clerkId: ''
+    clerkId: '',
+    favTeamId: ''
   });
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [loadingTeams, setLoadingTeams] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchTeams();
+    }
+  }, [isOpen]);
+
+  const fetchTeams = async () => {
+    setLoadingTeams(true);
+    try {
+      const response = await fetch('/api/admin/teams');
+      if (!response.ok) throw new Error('Failed to fetch teams');
+      const data = await response.json();
+      setTeams(data);
+    } catch (error) {
+      console.error('Error fetching teams:', error);
+    } finally {
+      setLoadingTeams(false);
+    }
+  };
 
   if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    const userData = {
+      ...formData,
+      favTeamId: formData.favTeamId || undefined
+    };
+    onSave(userData);
     setFormData({
       email: '',
       firstName: '',
       lastName: '',
       nickName: '',
       admin: false,
-      clerkId: ''
+      clerkId: '',
+      favTeamId: ''
     });
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
     
@@ -100,6 +136,23 @@ export default function CreateUserModal({ isOpen, onClose, onSave }: CreateUserM
               required
               className="mt-1 block w-full rounded-md border border-gray-600 bg-gray-700 px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
             />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300">Favorite Team</label>
+            <select
+              name="favTeamId"
+              value={formData.favTeamId}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border border-gray-600 bg-gray-700 px-3 py-2 text-white focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
+              disabled={loadingTeams}
+            >
+              <option value="">Select a team (optional)</option>
+              {teams.map((team) => (
+                <option key={team.id} value={team.id}>
+                  {team.name} ({team.conference})
+                </option>
+              ))}
+            </select>
           </div>
           <div className="flex items-center">
             <input

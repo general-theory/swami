@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import Image from 'next/image';
 
 interface Column {
   header: string;
@@ -15,6 +16,12 @@ interface Standing {
   };
   user: {
     displayName: string;
+    favTeamId?: string;
+    favoriteTeam?: {
+      id: string;
+      name: string;
+      logo: string;
+    };
   };
   balance: number;
   minBet: number;
@@ -47,7 +54,27 @@ export default function StandingsTable({ columns, data }: StandingsTableProps) {
     return current;
   };
 
-  const formatValue = (value: unknown, accessor: string): string => {
+  const formatValue = (value: unknown, accessor: string, standing?: Standing): React.ReactNode => {
+    if (accessor === 'user.displayName') {
+      const displayName = String(value ?? '');
+      const favoriteTeam = standing?.user.favoriteTeam;
+      
+      return (
+        <div className="flex items-center gap-2">
+          <span>{displayName}</span>
+          {favoriteTeam && favoriteTeam.logo && (
+            <Image
+              src={favoriteTeam.logo}
+              alt={`${favoriteTeam.name} logo`}
+              width={20}
+              height={20}
+              className="rounded-full"
+            />
+          )}
+        </div>
+      );
+    }
+    
     if (typeof value === 'number') {
       const formattedNumber = value.toLocaleString('en-US', {
         minimumFractionDigits: 2,
@@ -120,7 +147,8 @@ export default function StandingsTable({ columns, data }: StandingsTableProps) {
                 <td key={column.accessor} className="px-6 py-4 whitespace-nowrap">
                   {formatValue(
                     getNestedValue(standing, column.accessor),
-                    column.accessor
+                    column.accessor,
+                    standing
                   )}
                 </td>
               ))}

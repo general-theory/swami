@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { SignInButton, SignOutButton, useAuth } from "@clerk/nextjs";
 import { useEffect, useState, useCallback } from "react";
+import ThemeToggle from "./ThemeToggle";
 
 export default function Navbar() {
   const { isLoaded, isSignedIn, userId } = useAuth();
@@ -86,12 +87,6 @@ export default function Navbar() {
                 >
                   Latest Results
                 </Link>
-                <Link 
-                  href="/messages" 
-                  className="text-gray-300 hover:text-white transition-colors duration-200"
-                >
-                  Messages
-                </Link>
                 {hasActiveLeagues && (
                   <Link 
                     href="/wager" 
@@ -108,6 +103,12 @@ export default function Navbar() {
                     Admin
                   </Link>
                 )}
+                <Link 
+                  href="/profile" 
+                  className="text-blue-400 hover:text-blue-300 transition-colors duration-200"
+                >
+                  Profile
+                </Link>
               </>
             )}
             <Link 
@@ -116,6 +117,7 @@ export default function Navbar() {
             >
               Rules
             </Link>
+            <ThemeToggle />
             {isSignedIn ? (
               <SignOutButton>
                 <button className="text-red-400 hover:text-red-300 transition-colors duration-200">

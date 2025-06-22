@@ -16,10 +16,14 @@ model User {
   lastName  String
   nickName  String?
   admin     Boolean  @default(false)
+  favTeamId String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   participations UserParticipation[]
   wagers          Wager[]
+  favoriteTeam    Team?     @relation("UserFavoriteTeam", fields: [favTeamId], references: [id])
+
+  @@index([favTeamId])
 }
 
 model Season {
@@ -81,6 +85,7 @@ model Team {
   homeGames   Game[]   @relation("HomeTeam")
   awayGames   Game[]   @relation("AwayTeam")
   resultGames Game[]   @relation("ResultTeam")
+  favoriteOf  User[]   @relation("UserFavoriteTeam")
 
   @@index([providerId])
   @@index([name])

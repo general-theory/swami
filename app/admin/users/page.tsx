@@ -13,6 +13,7 @@ interface User {
   nickName: string;
   admin: boolean;
   clerkId: string;
+  favTeamId?: string;
   [key: string]: unknown;
 }
 
@@ -93,7 +94,7 @@ export default function UsersAdmin() {
     }
   };
 
-  const handleCreateSave = async (newUser: { email: string; firstName: string; lastName: string; nickName: string; admin: boolean; clerkId: string }) => {
+  const handleCreateSave = async (newUser: { email: string; firstName: string; lastName: string; nickName: string; admin: boolean; clerkId: string; favTeamId?: string }) => {
     try {
       const response = await fetch('/api/admin/users', {
         method: 'POST',

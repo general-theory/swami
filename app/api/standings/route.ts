@@ -54,6 +54,14 @@ export async function GET() {
             email: true,
             firstName: true,
             lastName: true,
+            favTeamId: true,
+            favoriteTeam: {
+              select: {
+                id: true,
+                name: true,
+                logo: true,
+              },
+            },
           },
         },
       },
@@ -63,19 +71,21 @@ export async function GET() {
     const transformedStandings = standings.map(standing => {
       const { minBet, maxBet } = calculateBetLimits(standing.balance);
       return {
-        ...standing,
-        minBet,
-        maxBet,
+        id: standing.id,
+        league: standing.league,
         user: {
           ...standing.user,
           displayName: standing.user.nickName || 
                       `${standing.user.firstName} ${standing.user.lastName}`.trim() || 
                       standing.user.email
-        }
+        },
+        balance: standing.balance,
+        minBet,
+        maxBet,
       };
     });
 
-    // Transform user leagues for the dropdown
+    // Transform user leagues for the dropdown (separate query to avoid type conflicts)
     const leagues = userLeagues.map(up => ({
       id: up.league.id,
       name: up.league.name,

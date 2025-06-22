@@ -16,6 +16,12 @@ interface Standing {
   };
   user: {
     displayName: string;
+    favTeamId?: string;
+    favoriteTeam?: {
+      id: string;
+      name: string;
+      logo: string;
+    };
   };
   balance: number;
   minBet: number;
