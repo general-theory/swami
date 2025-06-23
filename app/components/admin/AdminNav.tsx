@@ -7,6 +7,7 @@ import {
   CalendarIcon,
   CurrencyDollarIcon,
   TrophyIcon,
+  CogIcon,
 } from '@heroicons/react/24/outline';
 
 export default function AdminNav() {
@@ -26,6 +27,7 @@ export default function AdminNav() {
     { href: '/admin/leagues', label: 'Leagues', icon: TrophyIcon },
     { href: '/admin/participations', label: 'Participations', icon: UsersIcon },
     { href: '/admin/wagers', label: 'Wagers', icon: CurrencyDollarIcon },
+    { href: '/admin/weekly-processing', label: 'Weekly Processing', icon: CogIcon },
   ];
 
   return (
