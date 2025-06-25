@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import DataTable from '../../components/admin/DataTable';
 import EditTeamModal from '../../components/admin/EditTeamModal';
 import CreateTeamModal from '../../components/admin/CreateTeamModal';
+import { useToast } from '../../components/ui/use-toast';
 
 interface Team {
   id: string;
@@ -14,17 +15,21 @@ interface Team {
   abbreviation: string;
   division: string;
   logo: string;
+  rank?: number;
   [key: string]: unknown;
 }
 
 export default function TeamsAdmin() {
   const router = useRouter();
+  const { toast } = useToast();
   const [teams, setTeams] = useState<Team[]>([]);
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [teamToDelete, setTeamToDelete] = useState<Team | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [isSyncingRankings, setIsSyncingRankings] = useState(false);
 
   useEffect(() => {
     const checkAdminAndFetchTeams = async () => {
@@ -73,6 +78,9 @@ export default function TeamsAdmin() {
   };
 
   const handleSync = async () => {
+    if (isSyncing) return;
+    
+    setIsSyncing(true);
     try {
       const response = await fetch('/api/admin/teams/sync', {
         method: 'POST',
@@ -83,11 +91,60 @@ export default function TeamsAdmin() {
       }
 
       const result = await response.json();
-      alert(`Sync completed:\n${result.added} teams added\n${result.updated} teams updated`);
+      toast({
+        title: "Sync Completed",
+        description: `${result.added} teams added, ${result.updated} teams updated`,
+      });
       fetchTeams();
     } catch (error) {
       console.error('Error syncing teams:', error);
-      alert('Error syncing teams. Please try again.');
+      toast({
+        title: "Error",
+        description: "Error syncing teams. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleSyncRankings = async () => {
+    if (isSyncingRankings) return;
+    
+    setIsSyncingRankings(true);
+    try {
+      const response = await fetch('/api/admin/teams/sync-rankings', {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to sync rankings');
+      }
+
+      const result = await response.json();
+      
+      if (result.updated > 0 || result.cleared > 0) {
+        toast({
+          title: "Rankings Sync Completed",
+          description: `${result.updated} teams updated, ${result.cleared} teams cleared`,
+        });
+      } else {
+        toast({
+          title: "No Changes",
+          description: result.message || "No changes made",
+        });
+      }
+      
+      fetchTeams();
+    } catch (error) {
+      console.error('Error syncing rankings:', error);
+      toast({
+        title: "Error",
+        description: "Error syncing rankings. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSyncingRankings(false);
     }
   };
 
@@ -158,6 +215,7 @@ export default function TeamsAdmin() {
     { header: 'Mascot', accessorKey: 'mascot' },
     { header: 'Abbreviation', accessorKey: 'abbreviation' },
     { header: 'Division', accessorKey: 'division' },
+    { header: 'Rank', accessorKey: 'rank' },
   ];
 
   return (
@@ -173,9 +231,31 @@ export default function TeamsAdmin() {
           </button>
           <button
             onClick={handleSync}
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+            disabled={isSyncing}
+            className={`px-4 py-2 text-white rounded hover:bg-green-700 inline-flex items-center space-x-2 ${
+              isSyncing 
+                ? 'bg-green-400 cursor-not-allowed' 
+                : 'bg-green-600'
+            }`}
           >
-            Sync Data
+            {isSyncing && (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+            )}
+            <span>{isSyncing ? 'Syncing...' : 'Sync Data'}</span>
+          </button>
+          <button
+            onClick={handleSyncRankings}
+            disabled={isSyncingRankings}
+            className={`px-4 py-2 text-white rounded hover:bg-purple-700 inline-flex items-center space-x-2 ${
+              isSyncingRankings 
+                ? 'bg-purple-400 cursor-not-allowed' 
+                : 'bg-purple-600'
+            }`}
+          >
+            {isSyncingRankings && (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+            )}
+            <span>{isSyncingRankings ? 'Syncing Rankings...' : 'Sync Rankings'}</span>
           </button>
         </div>
       </div>

@@ -49,14 +49,16 @@ export async function GET() {
           select: {
             id: true,
             name: true,
-            logo: true
+            logo: true,
+            rank: true
           }
         },
         awayTeam: {
           select: {
             id: true,
             name: true,
-            logo: true
+            logo: true,
+            rank: true
           }
         },
         spread: true,

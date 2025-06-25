@@ -25,6 +25,9 @@ export async function GET() {
         conference: true,
         mascot: true,
         abbreviation: true,
+        division: true,
+        logo: true,
+        rank: true,
       },
       orderBy: {
         name: 'asc',
@@ -58,7 +61,7 @@ export async function POST(request: Request) {
     }
 
     const data = await request.json();
-    const { providerId, name, conference, mascot, abbreviation, division, logo } = data;
+    const { providerId, name, conference, mascot, abbreviation, division, logo, rank } = data;
 
     const newTeam = await prisma.team.create({
       data: {
@@ -69,6 +72,7 @@ export async function POST(request: Request) {
         abbreviation,
         division,
         logo,
+        rank,
       },
     });
 

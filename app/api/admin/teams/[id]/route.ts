@@ -22,7 +22,7 @@ export async function PUT(
     }
 
     const data = await request.json();
-    const { providerId, name, conference, mascot, abbreviation, division, logo } = data;
+    const { providerId, name, conference, mascot, abbreviation, division, logo, rank } = data;
     const { id } = await params;
 
     const updatedTeam = await prisma.team.update({
@@ -37,6 +37,7 @@ export async function PUT(
         abbreviation,
         division,
         logo,
+        rank,
       },
     });
 

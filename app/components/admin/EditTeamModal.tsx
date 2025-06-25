@@ -10,6 +10,7 @@ interface Team {
   abbreviation: string;
   division: string;
   logo: string;
+  rank?: number;
   [key: string]: unknown;
 }
 
@@ -31,10 +32,10 @@ export default function EditTeamModal({ team, isOpen, onClose, onSave }: EditTea
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-8 max-w-2xl w-full">
-        <h2 className="text-2xl font-bold mb-6">Edit Team</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+        <h2 className="text-xl font-bold mb-4">Edit Team</h2>
+        <form onSubmit={handleSubmit} className="space-y-3">
           <div>
             <label className="block text-sm font-medium text-gray-700">Provider ID</label>
             <input
@@ -98,7 +99,20 @@ export default function EditTeamModal({ team, isOpen, onClose, onSave }: EditTea
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             />
           </div>
-          <div className="flex justify-end space-x-4 mt-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Rank</label>
+            <input
+              type="number"
+              value={editedTeam.rank || ''}
+              onChange={(e) => setEditedTeam({ 
+                ...editedTeam, 
+                rank: e.target.value === '' ? undefined : parseInt(e.target.value) 
+              })}
+              placeholder="Enter team rank (optional)"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            />
+          </div>
+          <div className="flex justify-end space-x-3 pt-3">
             <button
               type="button"
               onClick={onClose}

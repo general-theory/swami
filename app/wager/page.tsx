@@ -15,11 +15,13 @@ interface Game {
     id: number;
     name: string;
     logo: string | null;
+    rank: number | null;
   };
   awayTeam: {
     id: number;
     name: string;
     logo: string | null;
+    rank: number | null;
   };
   spread: number | null;
   startDate: string;
@@ -108,7 +110,11 @@ function WagerModal({ open, onClose, game, leagueId, onWagerSuccess, existingWag
       <DialogContent className="max-w-lg w-full">
         <DialogTitle>Place Wager</DialogTitle>
         <div className="mb-4 space-y-1">
-          <div className="font-semibold">{game.awayTeam.name} <span className="text-xs text-gray-400">at</span> {game.homeTeam.name}</div>
+          <div className="font-semibold">
+            {game.awayTeam.rank && <span className="font-bold">#{game.awayTeam.rank}</span>} {game.awayTeam.name} 
+            <span className="text-xs text-gray-400"> at </span>
+            {game.homeTeam.rank && <span className="font-bold">#{game.homeTeam.rank}</span>} {game.homeTeam.name}
+          </div>
           <div className="text-sm text-gray-400">{new Date(game.startDate).toLocaleString()}</div>
           <div className="text-sm">Venue: {game.venue || 'N/A'}
             {game.neutralSite && (
@@ -121,10 +127,10 @@ function WagerModal({ open, onClose, game, leagueId, onWagerSuccess, existingWag
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex gap-4">
             <button type="button" className={`btn flex-1 ${pick==='home'?'btn-primary':'btn-outline'}`} onClick={()=>setPick('home')}>
-              {game.homeTeam.name}
+              {game.homeTeam.rank && <span className="font-bold">#{game.homeTeam.rank}</span>} {game.homeTeam.name}
             </button>
             <button type="button" className={`btn flex-1 ${pick==='visit'?'btn-primary':'btn-outline'}`} onClick={()=>setPick('visit')}>
-              {game.awayTeam.name}
+              {game.awayTeam.rank && <span className="font-bold">#{game.awayTeam.rank}</span>} {game.awayTeam.name}
             </button>
           </div>
           <div>
@@ -379,6 +385,7 @@ export default function Wager() {
                       {isHomeFavored ? (
                         <>
                           <span>@</span>
+                          {game.homeTeam.rank && <span className="font-bold">#{game.homeTeam.rank}</span>}
                           <span>{game.homeTeam.name}</span>
                           {game.homeTeam.logo && (
                             <Image
@@ -392,6 +399,7 @@ export default function Wager() {
                         </>
                       ) : (
                         <>
+                          {game.awayTeam.rank && <span className="font-bold">#{game.awayTeam.rank}</span>}
                           <span>{game.awayTeam.name}</span>
                           {game.awayTeam.logo && (
                             <Image
@@ -411,6 +419,7 @@ export default function Wager() {
                     <div className="flex items-center gap-2">
                       {isHomeFavored ? (
                         <>
+                          {game.awayTeam.rank && <span className="font-bold">#{game.awayTeam.rank}</span>}
                           <span>{game.awayTeam.name}</span>
                           {game.awayTeam.logo && (
                             <Image
@@ -425,6 +434,7 @@ export default function Wager() {
                       ) : (
                         <>
                           <span>@</span>
+                          {game.homeTeam.rank && <span className="font-bold">#{game.homeTeam.rank}</span>}
                           <span>{game.homeTeam.name}</span>
                           {game.homeTeam.logo && (
                             <Image
