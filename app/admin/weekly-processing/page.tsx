@@ -12,15 +12,36 @@ interface Week {
   active: boolean;
 }
 
+interface PlayerWithBets {
+  userId: string;
+  userName: string;
+  leagueId: number;
+  leagueName: string;
+  balance: number;
+  minBet: number;
+  currentBetTotal: number;
+  shortfall: number;
+}
+
 export default function WeeklyProcessing() {
   const [loading, setLoading] = useState(false);
   const [activeWeek, setActiveWeek] = useState<Week | null>(null);
+  const [defaultBetsData, setDefaultBetsData] = useState<PlayerWithBets[]>([]);
+  const [loadingDefaultBets, setLoadingDefaultBets] = useState(false);
+  const [sendingReminders, setSendingReminders] = useState(false);
   const { toast } = useToast();
 
   // Fetch active week on component mount
   useEffect(() => {
     fetchActiveWeek();
   }, []);
+
+  // Fetch default bets data when active week changes
+  useEffect(() => {
+    if (activeWeek) {
+      fetchDefaultBetsData();
+    }
+  }, [activeWeek]);
 
   const fetchActiveWeek = async () => {
     try {
@@ -32,6 +53,64 @@ export default function WeeklyProcessing() {
       }
     } catch (error) {
       console.error('Error fetching active week:', error);
+    }
+  };
+
+  const fetchDefaultBetsData = async () => {
+    setLoadingDefaultBets(true);
+    try {
+      const response = await fetch('/api/admin/weekly-processing/default-bets');
+      if (response.ok) {
+        const data = await response.json();
+        setDefaultBetsData(data);
+      } else {
+        console.error('Failed to fetch default bets data');
+        setDefaultBetsData([]);
+      }
+    } catch (error) {
+      console.error('Error fetching default bets data:', error);
+      setDefaultBetsData([]);
+    } finally {
+      setLoadingDefaultBets(false);
+    }
+  };
+
+  const sendEmailReminders = async () => {
+    if (defaultBetsData.length === 0) {
+      toast({
+        title: "No Reminders Needed",
+        description: "All players have met their minimum bet requirements.",
+      });
+      return;
+    }
+
+    setSendingReminders(true);
+    try {
+      const response = await fetch('/api/admin/weekly-processing/send-reminders', {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        toast({
+          title: "Reminders Sent",
+          description: result.message,
+        });
+        // Refresh the data to show updated status
+        await fetchDefaultBetsData();
+      } else {
+        const error = await response.text();
+        throw new Error(error || 'Failed to send reminders');
+      }
+    } catch (error) {
+      console.error('Error sending email reminders:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : 'Failed to send email reminders',
+        variant: "destructive",
+      });
+    } finally {
+      setSendingReminders(false);
     }
   };
 
@@ -119,6 +198,105 @@ export default function WeeklyProcessing() {
                 </div>
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Process Default Bets Card */}
+        <Card className="bg-white dark:bg-slate-800 border-0 shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white">
+              Process Default Bets
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-gray-600 dark:text-gray-300">
+              Players who have not met their minimum bet requirement for Week {activeWeek?.week || 'N/A'}:
+            </p>
+            
+            {defaultBetsData.length > 0 && (
+              <div className="flex justify-between items-center mb-4">
+                <div className="text-sm text-gray-600 dark:text-gray-300">
+                  {defaultBetsData.length} player(s) need reminders
+                </div>
+                <Button
+                  onClick={sendEmailReminders}
+                  disabled={sendingReminders}
+                  className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700"
+                  size="sm"
+                >
+                  {sendingReminders ? (
+                    <>
+                      <div className="loading loading-spinner loading-sm mr-2"></div>
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <span className="mr-2">📧</span>
+                      Send Email Reminder
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+            
+            {loadingDefaultBets ? (
+              <div className="flex justify-center py-8">
+                <div className="loading loading-spinner loading-lg"></div>
+              </div>
+            ) : defaultBetsData.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full table-auto">
+                  <thead>
+                    <tr className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white">
+                      <th className="px-4 py-2 text-left">Player</th>
+                      <th className="px-4 py-2 text-left">League</th>
+                      <th className="px-4 py-2 text-right">Balance</th>
+                      <th className="px-4 py-2 text-right">Min Bet</th>
+                      <th className="px-4 py-2 text-right">Current Total</th>
+                      <th className="px-4 py-2 text-right">Shortfall</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {defaultBetsData.map((player) => (
+                      <tr key={`${player.userId}-${player.leagueId}`} className="border-b border-gray-200 dark:border-gray-600">
+                        <td className="px-4 py-2 text-gray-900 dark:text-white">{player.userName}</td>
+                        <td className="px-4 py-2 text-gray-900 dark:text-white">{player.leagueName}</td>
+                        <td className="px-4 py-2 text-right text-gray-900 dark:text-white">${player.balance}</td>
+                        <td className="px-4 py-2 text-right text-gray-900 dark:text-white">${player.minBet}</td>
+                        <td className="px-4 py-2 text-right text-gray-900 dark:text-white">${player.currentBetTotal}</td>
+                        <td className="px-4 py-2 text-right font-semibold text-red-600 dark:text-red-400">${player.shortfall}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-600 dark:text-gray-300">
+                <div className="text-4xl mb-2">✅</div>
+                <p>All players have met their minimum bet requirements!</p>
+              </div>
+            )}
+            
+            <div className="pt-4">
+              <Button
+                onClick={fetchDefaultBetsData}
+                disabled={loadingDefaultBets}
+                variant="outline"
+                size="sm"
+              >
+                {loadingDefaultBets ? (
+                  <>
+                    <div className="loading loading-spinner loading-sm mr-2"></div>
+                    Refreshing...
+                  </>
+                ) : (
+                  <>
+                    <span className="mr-2">🔄</span>
+                    Refresh Data
+                  </>
+                )}
+              </Button>
+            </div>
           </CardContent>
         </Card>
 

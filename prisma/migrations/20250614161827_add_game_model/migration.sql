@@ -1,5 +1,5 @@
 -- AlterTable
-ALTER TABLE `userparticipation` ADD COLUMN `maxBet` DOUBLE NOT NULL DEFAULT 0,
+ALTER TABLE `UserParticipation` ADD COLUMN `maxBet` DOUBLE NOT NULL DEFAULT 0,
     ADD COLUMN `minBet` DOUBLE NOT NULL DEFAULT 0;
 
 -- CreateTable
