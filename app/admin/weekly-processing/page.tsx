@@ -29,6 +29,7 @@ export default function WeeklyProcessing() {
   const [defaultBetsData, setDefaultBetsData] = useState<PlayerWithBets[]>([]);
   const [loadingDefaultBets, setLoadingDefaultBets] = useState(false);
   const [sendingReminders, setSendingReminders] = useState(false);
+  const [addingDefaultBets, setAddingDefaultBets] = useState(false);
   const { toast } = useToast();
 
   // Fetch active week on component mount
@@ -111,6 +112,45 @@ export default function WeeklyProcessing() {
       });
     } finally {
       setSendingReminders(false);
+    }
+  };
+
+  const addDefaultBets = async () => {
+    if (defaultBetsData.length === 0) {
+      toast({
+        title: "No Default Bets Needed",
+        description: "All players have met their minimum bet requirements.",
+      });
+      return;
+    }
+
+    setAddingDefaultBets(true);
+    try {
+      const response = await fetch('/api/admin/weekly-processing/add-default-bets', {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        toast({
+          title: "Default Bets Added",
+          description: result.message,
+        });
+        // Refresh the data to show updated status
+        await fetchDefaultBetsData();
+      } else {
+        const error = await response.text();
+        throw new Error(error || 'Failed to add default bets');
+      }
+    } catch (error) {
+      console.error('Error adding default bets:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : 'Failed to add default bets',
+        variant: "destructive",
+      });
+    } finally {
+      setAddingDefaultBets(false);
     }
   };
 
@@ -218,24 +258,44 @@ export default function WeeklyProcessing() {
                 <div className="text-sm text-gray-600 dark:text-gray-300">
                   {defaultBetsData.length} player(s) need reminders
                 </div>
-                <Button
-                  onClick={sendEmailReminders}
-                  disabled={sendingReminders}
-                  className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700"
-                  size="sm"
-                >
-                  {sendingReminders ? (
-                    <>
-                      <div className="loading loading-spinner loading-sm mr-2"></div>
-                      Sending...
-                    </>
-                  ) : (
-                    <>
-                      <span className="mr-2">📧</span>
-                      Send Email Reminder
-                    </>
-                  )}
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={addDefaultBets}
+                    disabled={addingDefaultBets}
+                    className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
+                    size="sm"
+                  >
+                    {addingDefaultBets ? (
+                      <>
+                        <div className="loading loading-spinner loading-sm mr-2"></div>
+                        Adding...
+                      </>
+                    ) : (
+                      <>
+                        <span className="mr-2">💰</span>
+                        Add Default Bets
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    onClick={sendEmailReminders}
+                    disabled={sendingReminders}
+                    className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700"
+                    size="sm"
+                  >
+                    {sendingReminders ? (
+                      <>
+                        <div className="loading loading-spinner loading-sm mr-2"></div>
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <span className="mr-2">📧</span>
+                        Send Email Reminder
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
             )}
             

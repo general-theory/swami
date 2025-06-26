@@ -213,7 +213,7 @@ export default function ProfilePage() {
                     <SelectTrigger className="bg-white dark:bg-slate-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white">
                       <SelectValue placeholder="Select your favorite team" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="max-h-60 overflow-y-auto">
                       {teams.map((team) => (
                         <SelectItem key={team.id} value={team.id}>
                           {team.name}
