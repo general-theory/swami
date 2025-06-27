@@ -12,6 +12,7 @@ interface DashboardStats {
   teams: number;
   weeks: number;
   participations: number;
+  wagers: number;
 }
 
 export default function AdminDashboard() {
@@ -24,6 +25,7 @@ export default function AdminDashboard() {
     teams: 0,
     weeks: 0,
     participations: 0,
+    wagers: 0,
   });
 
   useEffect(() => {
@@ -101,7 +103,7 @@ export default function AdminDashboard() {
       description: 'Manage user wagers',
       href: '/admin/wagers',
       icon: BanknotesIcon,
-      count: 0, // TODO: Add wagers count to stats
+      count: stats.wagers,
     },
   ];
 

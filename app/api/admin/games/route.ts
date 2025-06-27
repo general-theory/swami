@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '../../../lib/db/prisma';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -18,21 +18,42 @@ export async function GET() {
       return new NextResponse('Forbidden', { status: 403 });
     }
 
+    // Get query parameters
+    const { searchParams } = new URL(request.url);
+    const weekId = searchParams.get('weekId');
+
+    // Build where clause
+    const whereClause: {
+      completed: boolean;
+      active?: boolean;
+      weekId?: number;
+    } = {
+      completed: false,
+    };
+
+    // If weekId is provided, filter by week and don't filter by active
+    if (weekId) {
+      whereClause.weekId = parseInt(weekId);
+    } else {
+      // Only filter by active if no weekId is provided (for the main admin games page)
+      whereClause.active = true;
+    }
+
     const games = await prisma.game.findMany({
-      where: {
-        completed: false,
-      },
+      where: whereClause,
       include: {
         homeTeam: {
           select: {
             id: true,
             name: true,
+            rank: true,
           },
         },
         awayTeam: {
           select: {
             id: true,
             name: true,
+            rank: true,
           },
         },
         season: {

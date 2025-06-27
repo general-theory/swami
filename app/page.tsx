@@ -66,9 +66,9 @@ export default function Home() {
             <Image
               src="/images/swamilogo.png"
               alt="Swami Logo"
-              width={120}
-              height={40}
-              className="mx-auto h-auto drop-shadow-2xl"
+              width={300}
+              height={100}
+              className="mx-auto h-24 w-auto drop-shadow-2xl filter brightness-110 contrast-110"
               priority
             />
           </div>

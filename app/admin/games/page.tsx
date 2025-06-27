@@ -63,6 +63,8 @@ export default function GamesAdmin() {
   const [selectedTeam, setSelectedTeam] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [isSyncingSpreads, setIsSyncingSpreads] = useState(false);
 
   const fetchGames = useCallback(async () => {
     try {
@@ -120,13 +122,34 @@ export default function GamesAdmin() {
   }, [fetchGames]);
 
   const handleSync = async () => {
+    if (isSyncing) return; // Prevent double-clicks
+    
+    // Check if season and week are selected
+    if (selectedSeason === 'all' || selectedWeek === 'all') {
+      toast({
+        title: "Selection Required",
+        description: "Please select a specific season and week before syncing games.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsSyncing(true);
     try {
       const response = await fetch('/api/admin/games/sync', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          seasonId: selectedSeason,
+          weekId: selectedWeek,
+        }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to sync games');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to sync games');
       }
 
       const data = await response.json();
@@ -143,13 +166,18 @@ export default function GamesAdmin() {
       console.error('Error syncing games:', error);
       toast({
         title: "Sync Failed",
-        description: "There was an error syncing games. Please try again.",
+        description: error instanceof Error ? error.message : "There was an error syncing games. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsSyncing(false);
     }
   };
 
   const handleSyncSpreads = async () => {
+    if (isSyncingSpreads) return; // Prevent double-clicks
+    
+    setIsSyncingSpreads(true);
     try {
       const response = await fetch('/api/admin/games/sync-spreads', {
         method: 'POST',
@@ -183,6 +211,8 @@ export default function GamesAdmin() {
         description: "There was an error syncing spreads. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsSyncingSpreads(false);
     }
   };
 
@@ -305,17 +335,38 @@ export default function GamesAdmin() {
             </button>
             <button
               onClick={handleSync}
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+              disabled={isSyncing || selectedSeason === 'all' || selectedWeek === 'all'}
+              className={`px-4 py-2 text-white rounded inline-flex items-center space-x-2 ${
+                isSyncing || selectedSeason === 'all' || selectedWeek === 'all'
+                  ? 'bg-green-400 cursor-not-allowed' 
+                  : 'bg-green-600 hover:bg-green-700'
+              }`}
             >
-              Sync Games
+              {isSyncing && (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              )}
+              <span>{isSyncing ? 'Syncing...' : 'Sync Games'}</span>
             </button>
             <button
               onClick={handleSyncSpreads}
-              className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
+              disabled={isSyncingSpreads}
+              className={`px-4 py-2 text-white rounded inline-flex items-center space-x-2 ${
+                isSyncingSpreads 
+                  ? 'bg-purple-400 cursor-not-allowed' 
+                  : 'bg-purple-600 hover:bg-purple-700'
+              }`}
             >
-              Sync Spreads
+              {isSyncingSpreads && (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              )}
+              <span>{isSyncingSpreads ? 'Syncing Spreads...' : 'Sync Spreads'}</span>
             </button>
           </div>
+        </div>
+        
+        <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg border border-blue-200">
+          <strong>Note:</strong> To sync games, please select a specific season and week from the filters below. 
+          This will sync only the games for that specific week, making the process much faster.
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-100 p-4 rounded-lg">

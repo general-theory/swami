@@ -27,6 +27,7 @@ interface Game {
     id: number;
     week: number;
   };
+  active: boolean;
 }
 
 interface Season {
@@ -146,7 +147,8 @@ export default function CreateWagerModal({
   const filteredGames = games.filter(game => {
     if (!selectedSeason || !selectedWeek) return false;
     return game.season.id.toString() === selectedSeason && 
-           game.week.id.toString() === selectedWeek;
+           game.week.id.toString() === selectedWeek &&
+           game.active; // Only show active games
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -191,7 +193,7 @@ export default function CreateWagerModal({
   };
 
   const formatGameLabel = (game: Game) => {
-    return `${game.homeTeam.name} vs ${game.awayTeam.name}`;
+    return `${game.awayTeam.name} @ ${game.homeTeam.name}`;
   };
 
   return (

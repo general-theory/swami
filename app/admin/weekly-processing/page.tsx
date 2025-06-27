@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { useToast } from '../../components/ui/use-toast';
@@ -23,6 +23,20 @@ interface PlayerWithBets {
   shortfall: number;
 }
 
+interface GameForSelection {
+  id: number;
+  awayTeam: {
+    name: string;
+    rank: number | null;
+  };
+  homeTeam: {
+    name: string;
+    rank: number | null;
+  };
+  spread: number | null;
+  active: boolean;
+}
+
 export default function WeeklyProcessing() {
   const [loading, setLoading] = useState(false);
   const [activeWeek, setActiveWeek] = useState<Week | null>(null);
@@ -30,19 +44,16 @@ export default function WeeklyProcessing() {
   const [loadingDefaultBets, setLoadingDefaultBets] = useState(false);
   const [sendingReminders, setSendingReminders] = useState(false);
   const [addingDefaultBets, setAddingDefaultBets] = useState(false);
+  const [gamesForSelection, setGamesForSelection] = useState<GameForSelection[]>([]);
+  const [selectedGames, setSelectedGames] = useState<Set<number>>(new Set());
+  const [loadingGames, setLoadingGames] = useState(false);
+  const [updatingActiveGames, setUpdatingActiveGames] = useState(false);
   const { toast } = useToast();
 
   // Fetch active week on component mount
   useEffect(() => {
     fetchActiveWeek();
   }, []);
-
-  // Fetch default bets data when active week changes
-  useEffect(() => {
-    if (activeWeek) {
-      fetchDefaultBetsData();
-    }
-  }, [activeWeek]);
 
   const fetchActiveWeek = async () => {
     try {
@@ -57,7 +68,7 @@ export default function WeeklyProcessing() {
     }
   };
 
-  const fetchDefaultBetsData = async () => {
+  const fetchDefaultBetsData = useCallback(async () => {
     setLoadingDefaultBets(true);
     try {
       const response = await fetch('/api/admin/weekly-processing/default-bets');
@@ -74,7 +85,39 @@ export default function WeeklyProcessing() {
     } finally {
       setLoadingDefaultBets(false);
     }
-  };
+  }, []);
+
+  const fetchGamesForSelection = useCallback(async () => {
+    if (!activeWeek) return;
+    
+    setLoadingGames(true);
+    try {
+      const response = await fetch(`/api/admin/games?weekId=${activeWeek.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setGamesForSelection(data);
+        // Initialize selected games with currently active games
+        const activeGameIds = new Set(data.filter((game: GameForSelection) => game.active).map((game: GameForSelection) => game.id));
+        setSelectedGames(activeGameIds as Set<number>);
+      } else {
+        console.error('Failed to fetch games for selection');
+        setGamesForSelection([]);
+      }
+    } catch (error) {
+      console.error('Error fetching games for selection:', error);
+      setGamesForSelection([]);
+    } finally {
+      setLoadingGames(false);
+    }
+  }, [activeWeek]);
+
+  // Fetch default bets data when active week changes
+  useEffect(() => {
+    if (activeWeek) {
+      fetchDefaultBetsData();
+      fetchGamesForSelection();
+    }
+  }, [activeWeek, fetchDefaultBetsData, fetchGamesForSelection]);
 
   const sendEmailReminders = async () => {
     if (defaultBetsData.length === 0) {
@@ -151,6 +194,71 @@ export default function WeeklyProcessing() {
       });
     } finally {
       setAddingDefaultBets(false);
+    }
+  };
+
+  const handleGameSelection = (gameId: number) => {
+    const newSelectedGames = new Set(selectedGames);
+    if (newSelectedGames.has(gameId)) {
+      newSelectedGames.delete(gameId);
+    } else {
+      if (newSelectedGames.size >= 16) {
+        toast({
+          title: "Maximum Games Selected",
+          description: "You can only select up to 16 games.",
+          variant: "destructive",
+        });
+        return;
+      }
+      newSelectedGames.add(gameId);
+    }
+    setSelectedGames(newSelectedGames);
+  };
+
+  const updateActiveGames = async () => {
+    if (!activeWeek) {
+      toast({
+        title: "Error",
+        description: "No active week found.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUpdatingActiveGames(true);
+    try {
+      const response = await fetch('/api/admin/weekly-processing/update-active-games', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          weekId: activeWeek.id,
+          selectedGameIds: Array.from(selectedGames),
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        toast({
+          title: "Active Games Updated",
+          description: result.message,
+        });
+        // Refresh the games data
+        await fetchGamesForSelection();
+      } else {
+        const error = await response.text();
+        throw new Error(error || 'Failed to update active games');
+      }
+    } catch (error) {
+      console.error('Error updating active games:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : 'Failed to update active games',
+        variant: "destructive",
+      });
+    } finally {
+      setUpdatingActiveGames(false);
     }
   };
 
@@ -238,6 +346,134 @@ export default function WeeklyProcessing() {
                 </div>
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Pick Active Games Card */}
+        <Card className="bg-white dark:bg-slate-800 border-0 shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white">
+              Pick Active Games
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-gray-600 dark:text-gray-300">
+              Select up to 16 games for Week {activeWeek?.week || 'N/A'} that players can wager on:
+            </p>
+            
+            <div className="flex justify-between items-center mb-4">
+              <div className="text-sm text-gray-600 dark:text-gray-300">
+                {selectedGames.size} of 16 games selected
+              </div>
+              <Button
+                onClick={updateActiveGames}
+                disabled={updatingActiveGames || selectedGames.size === 0}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                size="sm"
+              >
+                {updatingActiveGames ? (
+                  <>
+                    <div className="loading loading-spinner loading-sm mr-2"></div>
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    <span className="mr-2">✅</span>
+                    Update Active Games
+                  </>
+                )}
+              </Button>
+            </div>
+            
+            {loadingGames ? (
+              <div className="flex justify-center py-8">
+                <div className="loading loading-spinner loading-lg"></div>
+              </div>
+            ) : gamesForSelection.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full table-auto">
+                  <thead>
+                    <tr className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white">
+                      <th className="px-4 py-2 text-left w-12">Select</th>
+                      <th className="px-4 py-2 text-left">Visit Team</th>
+                      <th className="px-4 py-2 text-center">Spread</th>
+                      <th className="px-4 py-2 text-left">Home Team</th>
+                      <th className="px-4 py-2 text-center">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {gamesForSelection.map((game) => (
+                      <tr 
+                        key={game.id} 
+                        className={`border-b border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 ${
+                          selectedGames.has(game.id) ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                        }`}
+                        onClick={() => handleGameSelection(game.id)}
+                      >
+                        <td className="px-4 py-2">
+                          <input
+                            type="checkbox"
+                            checked={selectedGames.has(game.id)}
+                            onChange={() => handleGameSelection(game.id)}
+                            className="h-4 w-4 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-500"
+                          />
+                        </td>
+                        <td className="px-4 py-2 text-gray-900 dark:text-white font-medium">
+                          {game.awayTeam.rank && (
+                            <span className="font-bold text-blue-600 dark:text-blue-400 mr-2">#{game.awayTeam.rank}</span>
+                          )}
+                          {game.awayTeam.name}
+                        </td>
+                        <td className="px-4 py-2 text-center text-gray-900 dark:text-white">
+                          {game.spread !== null ? (game.spread >= 0 ? `+${game.spread}` : game.spread.toString()) : 'N/A'}
+                        </td>
+                        <td className="px-4 py-2 text-gray-900 dark:text-white font-medium">
+                          {game.homeTeam.rank && (
+                            <span className="font-bold text-blue-600 dark:text-blue-400 mr-2">#{game.homeTeam.rank}</span>
+                          )}
+                          {game.homeTeam.name}
+                        </td>
+                        <td className="px-4 py-2 text-center">
+                          <span className={`inline-block px-2 py-1 text-xs font-semibold rounded ${
+                            game.active 
+                              ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' 
+                              : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                          }`}>
+                            {game.active ? 'Active' : 'Inactive'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-600 dark:text-gray-300">
+                <div className="text-4xl mb-2">📋</div>
+                <p>No games found for this week.</p>
+              </div>
+            )}
+            
+            <div className="pt-4">
+              <Button
+                onClick={fetchGamesForSelection}
+                disabled={loadingGames}
+                variant="outline"
+                size="sm"
+              >
+                {loadingGames ? (
+                  <>
+                    <div className="loading loading-spinner loading-sm mr-2"></div>
+                    Refreshing...
+                  </>
+                ) : (
+                  <>
+                    <span className="mr-2">🔄</span>
+                    Refresh Games
+                  </>
+                )}
+              </Button>
+            </div>
           </CardContent>
         </Card>
 

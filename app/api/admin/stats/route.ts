@@ -18,14 +18,15 @@ export async function GET() {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    const [users, seasons, leagues, games, teams, weeks, participations] = await Promise.all([
+    const [users, seasons, leagues, games, teams, weeks, participations, wagers] = await Promise.all([
       prisma.user.count(),
       prisma.season.count(),
       prisma.league.count(),
       prisma.game.count(),
       prisma.team.count(),
       prisma.week.count(),
-      prisma.userParticipation.count()
+      prisma.userParticipation.count(),
+      prisma.wager.count()
     ]);
 
     return NextResponse.json({
@@ -35,7 +36,8 @@ export async function GET() {
       games,
       teams,
       weeks,
-      participations
+      participations,
+      wagers
     });
   } catch (error) {
     console.error('Error fetching stats:', error);

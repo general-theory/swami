@@ -64,18 +64,20 @@ export default function Navbar() {
 
   return (
     <nav className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10">
         <div className="flex justify-between h-16 items-center">
           {/* Logo */}
-          <Link href="/" className="flex-shrink-0">
-            <Image
-              src="/images/swamilogo.png"
-              alt="Swami Logo"
-              width={80}
-              height={30}
-              className="h-auto"
-              priority
-            />
+          <Link href="/" className="flex-shrink-0 flex items-center min-w-0 p-1 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+            <div className="relative">
+              <Image
+                src="/images/swamilogo.png"
+                alt="Swami Logo"
+                width={120}
+                height={45}
+                className="h-10 w-auto object-contain drop-shadow-sm filter brightness-110 contrast-110"
+                priority
+              />
+            </div>
           </Link>
 
           {/* Desktop Navigation */}

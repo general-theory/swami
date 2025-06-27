@@ -31,6 +31,7 @@ interface Game {
     id: number;
     week: number;
   };
+  active: boolean;
 }
 
 export interface WagerWithDetails {

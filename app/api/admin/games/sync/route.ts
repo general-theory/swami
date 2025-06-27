@@ -2,7 +2,7 @@ import { auth } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../lib/db/prisma';
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -18,22 +18,38 @@ export async function POST() {
       return new NextResponse('Forbidden', { status: 403 });
     }
 
-    // Get the active season to determine the year
-    const activeSeason = await prisma.season.findFirst({
-      where: { active: true },
-      select: { year: true }
-    });
+    // Get season and week from request body
+    const body = await request.json();
+    const { seasonId, weekId } = body;
 
-    if (!activeSeason) {
+    if (!seasonId || !weekId) {
       return NextResponse.json(
-        { error: 'No active season found' },
+        { error: 'Season and week are required' },
         { status: 400 }
       );
     }
 
-    // Fetch games from CFBD API
+    // Get the season and week details
+    const season = await prisma.season.findUnique({
+      where: { id: parseInt(seasonId) },
+      select: { id: true, year: true }
+    });
+
+    const week = await prisma.week.findUnique({
+      where: { id: parseInt(weekId) },
+      select: { id: true, week: true }
+    });
+
+    if (!season || !week) {
+      return NextResponse.json(
+        { error: 'Season or week not found' },
+        { status: 400 }
+      );
+    }
+
+    // Fetch games from CFBD API for specific year and week
     const response = await fetch(
-      `https://api.collegefootballdata.com/games?year=${activeSeason.year}&seasonType=both&classification=fbs`,
+      `https://api.collegefootballdata.com/games?year=${season.year}&week=${week.week}&seasonType=both&classification=fbs`,
       {
         headers: {
           'Authorization': `Bearer ${process.env.CFBD_API_KEY}`,
@@ -59,31 +75,6 @@ export async function POST() {
         homePoints: game.homePoints,
         awayPoints: game.awayPoints
       });
-
-      // Find the season
-      const season = await prisma.season.findFirst({
-        where: { year: game.season },
-        select: { id: true }
-      });
-
-      if (!season) {
-        console.warn(`Season not found for year ${game.season}`);
-        continue;
-      }
-
-      // Find the week
-      const week = await prisma.week.findFirst({
-        where: {
-          seasonId: season.id,
-          week: game.week
-        },
-        select: { id: true }
-      });
-
-      if (!week) {
-        console.warn(`Week ${game.week} not found for season ${game.season}`);
-        continue;
-      }
 
       // Find the teams
       const [homeTeam, awayTeam] = await Promise.all([
