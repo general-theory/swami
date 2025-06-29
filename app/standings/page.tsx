@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import StandingsTable from '../components/StandingsTable';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Card, CardContent } from '../components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 
 interface League {
