@@ -120,42 +120,51 @@ export default function StandingsTable({ columns, data }: StandingsTableProps) {
   };
 
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full bg-white rounded-lg overflow-hidden">
-        <thead className="bg-gray-100">
-          <tr>
-            {columns.map((column) => (
-              <th
-                key={column.accessor}
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200"
-                onClick={() => requestSort(column.accessor)}
-              >
-                {column.header}
-                {sortConfig?.key === column.accessor && (
-                  <span className="ml-1">
-                    {sortConfig.direction === 'asc' ? '↑' : '↓'}
-                  </span>
-                )}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-200">
-          {sortedData.map((standing) => (
-            <tr key={standing.id} className="hover:bg-gray-50">
+    <div className="bg-white rounded-lg overflow-hidden">
+      {/* Fixed Table Header */}
+      <div className="sticky top-0 z-50 bg-gray-100">
+        <table className="min-w-full">
+          <thead>
+            <tr>
               {columns.map((column) => (
-                <td key={column.accessor} className="px-6 py-4 whitespace-nowrap">
-                  {formatValue(
-                    getNestedValue(standing, column.accessor),
-                    column.accessor,
-                    standing
+                <th
+                  key={column.accessor}
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 bg-gray-100"
+                  onClick={() => requestSort(column.accessor)}
+                >
+                  {column.header}
+                  {sortConfig?.key === column.accessor && (
+                    <span className="ml-1">
+                      {sortConfig.direction === 'asc' ? '↑' : '↓'}
+                    </span>
                   )}
-                </td>
+                </th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+        </table>
+      </div>
+
+      {/* Scrollable Table Body */}
+      <div className="overflow-x-auto h-96 overflow-y-auto">
+        <table className="min-w-full">
+          <tbody className="divide-y divide-gray-200">
+            {sortedData.map((standing) => (
+              <tr key={standing.id} className="hover:bg-gray-50">
+                {columns.map((column) => (
+                  <td key={column.accessor} className="px-6 py-4 whitespace-nowrap">
+                    {formatValue(
+                      getNestedValue(standing, column.accessor),
+                      column.accessor,
+                      standing
+                    )}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 } 

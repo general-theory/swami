@@ -86,72 +86,40 @@ export default function Standings() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
-            Standings
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Track your performance and see how you rank against other players
-          </p>
-        </div>
-
-        {/* Filter Section */}
-        <Card className="mb-8 bg-white dark:bg-slate-800 border-0 shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white">
-              Filter Results
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-              <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-200 whitespace-nowrap">
-                  League:
-                </label>
-                <Select
-                  value={selectedLeagueId.toString()}
-                  onValueChange={(value) => setSelectedLeagueId(value === 'all' ? 'all' : Number(value))}
-                >
-                  <SelectTrigger className="w-full sm:w-64">
-                    <SelectValue placeholder="Select a league" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Leagues</SelectItem>
-                    {userLeagues.map((league) => (
-                      <SelectItem key={league.id} value={league.id.toString()}>
-                        {league.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              {/* Stats Summary */}
-              <div className="flex flex-wrap gap-4 ml-auto">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                    {filteredStandings.length}
-                  </div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">
-                    Players
-                  </div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                    ${Math.max(...filteredStandings.map(s => s.balance), 0).toLocaleString()}
-                  </div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">
-                    Top Balance
-                  </div>
-                </div>
-              </div>
+      {/* Fixed Header */}
+      <div className="sticky top-0 z-50 bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Standings
+            </h1>
+            <div className="flex items-center space-x-2">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-200 whitespace-nowrap">
+                League:
+              </label>
+              <Select
+                value={selectedLeagueId.toString()}
+                onValueChange={(value) => setSelectedLeagueId(value === 'all' ? 'all' : Number(value))}
+              >
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Select a league" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Leagues</SelectItem>
+                  {userLeagues.map((league) => (
+                    <SelectItem key={league.id} value={league.id.toString()}>
+                      {league.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+      </div>
 
-        {/* Standings Table */}
+      {/* Table Section */}
+      <div className="container mx-auto px-4 py-4">
         <Card className="bg-white dark:bg-slate-800 border-0 shadow-lg">
           <CardContent className="p-0">
             {filteredStandings.length > 0 ? (

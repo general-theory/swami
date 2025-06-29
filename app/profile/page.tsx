@@ -56,7 +56,7 @@ export default function ProfilePage() {
         }
 
         // Fetch teams
-        const teamsResponse = await fetch('/api/admin/teams');
+        const teamsResponse = await fetch('/api/teams');
         if (teamsResponse.ok) {
           const teamsData = await teamsResponse.json();
           setTeams(teamsData);
