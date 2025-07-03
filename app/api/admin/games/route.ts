@@ -21,6 +21,7 @@ export async function GET(request: Request) {
     // Get query parameters
     const { searchParams } = new URL(request.url);
     const weekId = searchParams.get('weekId');
+    const showAll = searchParams.get('showAll') === 'true';
 
     // Build where clause
     const whereClause: {
@@ -34,8 +35,8 @@ export async function GET(request: Request) {
     // If weekId is provided, filter by week and don't filter by active
     if (weekId) {
       whereClause.weekId = parseInt(weekId);
-    } else {
-      // Only filter by active if no weekId is provided (for the main admin games page)
+    } else if (!showAll) {
+      // Only filter by active if no weekId is provided AND showAll is not true
       whereClause.active = true;
     }
 

@@ -34,6 +34,8 @@ interface StandingsTableProps {
 }
 
 export default function StandingsTable({ columns, data }: StandingsTableProps) {
+  console.log('StandingsTable rendered with:', { columns, dataLength: data.length });
+  
   const [sortConfig, setSortConfig] = useState<{
     key: string;
     direction: 'asc' | 'desc';
@@ -119,51 +121,79 @@ export default function StandingsTable({ columns, data }: StandingsTableProps) {
     setSortConfig({ key, direction });
   };
 
+  const getColumnAlignment = (accessor: string): 'left' | 'right' => {
+    // Numeric columns should be right-aligned
+    if (['balance', 'minBet', 'maxBet'].includes(accessor)) {
+      return 'right';
+    }
+    // Text columns should be left-aligned
+    return 'left';
+  };
+
+  const getColumnWidth = (accessor: string): string => {
+    switch (accessor) {
+      case 'league.name':
+        return 'w-48'; // Fixed width for league names
+      case 'user.displayName':
+        return 'w-40'; // Fixed width for user names
+      case 'balance':
+        return 'w-24'; // Fixed width for balance
+      case 'minBet':
+        return 'w-24'; // Fixed width for min bet
+      case 'maxBet':
+        return 'w-24'; // Fixed width for max bet
+      default:
+        return 'w-auto';
+    }
+  };
+
   return (
     <div className="bg-white rounded-lg overflow-hidden">
       {/* Fixed Table Header */}
       <div className="sticky top-0 z-50 bg-gray-100">
-        <table className="min-w-full">
-          <thead>
-            <tr>
-              {columns.map((column) => (
-                <th
-                  key={column.accessor}
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 bg-gray-100"
-                  onClick={() => requestSort(column.accessor)}
-                >
-                  {column.header}
-                  {sortConfig?.key === column.accessor && (
-                    <span className="ml-1">
-                      {sortConfig.direction === 'asc' ? '↑' : '↓'}
-                    </span>
-                  )}
-                </th>
-              ))}
-            </tr>
-          </thead>
-        </table>
+        <div className="grid grid-cols-5 gap-0">
+          {columns.map((column) => {
+            const alignment = getColumnAlignment(column.accessor);
+            const width = getColumnWidth(column.accessor);
+            console.log(`Column ${column.header} (${column.accessor}): ${alignment}`);
+            return (
+              <div
+                key={column.accessor}
+                className={`px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 bg-gray-100 ${width}`}
+                style={{ textAlign: alignment }}
+                onClick={() => requestSort(column.accessor)}
+              >
+                {column.header}
+                {sortConfig?.key === column.accessor && (
+                  <span className="ml-1">
+                    {sortConfig.direction === 'asc' ? '↑' : '↓'}
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Scrollable Table Body */}
       <div className="overflow-x-auto h-96 overflow-y-auto">
-        <table className="min-w-full">
-          <tbody className="divide-y divide-gray-200">
-            {sortedData.map((standing) => (
-              <tr key={standing.id} className="hover:bg-gray-50">
-                {columns.map((column) => (
-                  <td key={column.accessor} className="px-6 py-4 whitespace-nowrap">
-                    {formatValue(
-                      getNestedValue(standing, column.accessor),
-                      column.accessor,
-                      standing
-                    )}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {sortedData.map((standing) => (
+          <div key={standing.id} className="grid grid-cols-5 gap-0 hover:bg-gray-50 border-b border-gray-200">
+            {columns.map((column) => {
+              const alignment = getColumnAlignment(column.accessor);
+              const width = getColumnWidth(column.accessor);
+              return (
+                <div key={column.accessor} className={`px-6 py-4 whitespace-nowrap ${width}`} style={{ textAlign: alignment }}>
+                  {formatValue(
+                    getNestedValue(standing, column.accessor),
+                    column.accessor,
+                    standing
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ))}
       </div>
     </div>
   );

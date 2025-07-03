@@ -92,11 +92,20 @@ export async function POST(request: Request) {
       });
 
       if (existingGame) {
+        // Process spread to ensure it's not a whole number
+        let processedSpread = line.spread ? Number(line.spread) : undefined;
+        
+        // If spread is a whole number, add .5 to make it unfavorable to the favored team
+        if (processedSpread !== undefined && Number.isInteger(processedSpread)) {
+          // Add .5 to the absolute value, maintaining the original sign
+          processedSpread = processedSpread > 0 ? processedSpread + 0.5 : processedSpread - 0.5;
+        }
+
         // Update the game with new spread values
         await prisma.game.update({
           where: { id: existingGame.id },
           data: {
-            spread: line.spread ? Number(line.spread) : undefined,
+            spread: processedSpread,
             startingSpread: line.spreadOpen ? Number(line.spreadOpen) : undefined,
           }
         });

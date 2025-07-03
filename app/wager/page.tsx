@@ -108,39 +108,39 @@ function WagerModal({ open, onClose, game, leagueId, onWagerSuccess, existingWag
   return (
     <Dialog open={open} onOpenChange={v => !v && onClose()}>
       <DialogContent className="max-w-lg w-full">
-        <DialogTitle>Place Wager</DialogTitle>
-        <div className="mb-4 space-y-1">
+        <DialogTitle className="text-lg sm:text-xl">Place Wager</DialogTitle>
+        <div className="mb-4 space-y-1 text-sm sm:text-base">
           <div className="font-semibold">
             {game.awayTeam.rank && <span className="font-bold">#{game.awayTeam.rank}</span>} {game.awayTeam.name} 
             <span className="text-xs text-gray-400"> at </span>
             {game.homeTeam.rank && <span className="font-bold">#{game.homeTeam.rank}</span>} {game.homeTeam.name}
           </div>
-          <div className="text-sm text-gray-400">{new Date(game.startDate).toLocaleString()}</div>
-          <div className="text-sm">Venue: {game.venue || 'N/A'}
+          <div className="text-xs sm:text-sm text-gray-400">{new Date(game.startDate).toLocaleString()}</div>
+          <div className="text-xs sm:text-sm">Venue: {game.venue || 'N/A'}
             {game.neutralSite && (
               <span className="ml-2 inline-block bg-warning text-warning-content text-xs font-semibold px-2 py-0.5 rounded">Neutral Site</span>
             )}
           </div>
-          <div className="text-sm">Spread: {game.spread ?? 'N/A'} (Starting: {game.startingSpread ?? 'N/A'})</div>
-          <div className="flex items-center text-sm"><span className="font-semibold w-20">Favored:</span> {typeof game.spread === 'number' ? (game.spread >= 0 ? game.homeTeam.name : game.awayTeam.name) : 'N/A'}</div>
+          <div className="text-xs sm:text-sm">Spread: {game.spread ?? 'N/A'} (Starting: {game.startingSpread ?? 'N/A'})</div>
+          <div className="flex items-center text-xs sm:text-sm"><span className="font-semibold w-16 sm:w-20">Favored:</span> {typeof game.spread === 'number' ? (game.spread >= 0 ? game.homeTeam.name : game.awayTeam.name) : 'N/A'}</div>
         </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex gap-4">
-            <button type="button" className={`btn flex-1 ${pick==='home'?'btn-primary':'btn-outline'}`} onClick={()=>setPick('home')}>
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+            <button type="button" className={`btn flex-1 text-xs sm:text-sm py-2 sm:py-3 ${pick==='home'?'btn-primary':'btn-outline'}`} onClick={()=>setPick('home')}>
               {game.homeTeam.rank && <span className="font-bold">#{game.homeTeam.rank}</span>} {game.homeTeam.name}
             </button>
-            <button type="button" className={`btn flex-1 ${pick==='visit'?'btn-primary':'btn-outline'}`} onClick={()=>setPick('visit')}>
+            <button type="button" className={`btn flex-1 text-xs sm:text-sm py-2 sm:py-3 ${pick==='visit'?'btn-primary':'btn-outline'}`} onClick={()=>setPick('visit')}>
               {game.awayTeam.rank && <span className="font-bold">#{game.awayTeam.rank}</span>} {game.awayTeam.name}
             </button>
           </div>
           <div>
-            <label className="block mb-1">Amount ($)</label>
-            <input type="number" className="input input-bordered w-full" min={0} step={10} value={amount} onChange={e=>setAmount(e.target.value)} />
+            <label className="block mb-1 text-sm sm:text-base">Amount ($)</label>
+            <input type="number" className="input input-bordered w-full text-sm sm:text-base" min={0} step={10} value={amount} onChange={e=>setAmount(e.target.value)} />
           </div>
-          {error && <div className="text-error text-sm">{error}</div>}
-          <div className="flex justify-end gap-2">
-            <button type="button" className="btn btn-ghost" onClick={onClose} disabled={loading}>Cancel</button>
-            <button type="submit" className="btn btn-primary" disabled={loading}>Place Wager</button>
+          {error && <div className="text-error text-xs sm:text-sm">{error}</div>}
+          <div className="flex justify-end gap-2 pt-2">
+            <button type="button" className="btn btn-ghost btn-sm sm:btn-md" onClick={onClose} disabled={loading}>Cancel</button>
+            <button type="submit" className="btn btn-primary btn-sm sm:btn-md" disabled={loading}>Place Wager</button>
           </div>
         </form>
       </DialogContent>

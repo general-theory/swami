@@ -68,7 +68,7 @@ export default function GamesAdmin() {
 
   const fetchGames = useCallback(async () => {
     try {
-      const response = await fetch('/api/admin/games');
+      const response = await fetch('/api/admin/games?showAll=true');
       if (!response.ok) {
         throw new Error('Failed to fetch games');
       }
