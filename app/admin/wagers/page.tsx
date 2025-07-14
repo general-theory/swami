@@ -10,7 +10,7 @@ import { Skeleton } from '../../components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '../../components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { Button } from '../../components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, Download } from 'lucide-react';
 import CreateWagerModal from './CreateWagerModal';
 
 interface Game {
@@ -213,17 +213,58 @@ function WagersAdminContent() {
     ));
   };
 
+  const handleDownloadWagers = async () => {
+    try {
+      const response = await fetch('/api/admin/wagers/download');
+      if (!response.ok) {
+        throw new Error('Failed to download wagers');
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = response.headers.get('content-disposition')?.split('filename=')[1]?.replace(/"/g, '') || 'all-wagers.csv';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast({
+        title: "Success",
+        description: "Wagers downloaded successfully",
+      });
+    } catch (error) {
+      console.error('Error downloading wagers:', error);
+      toast({
+        title: "Error",
+        description: "Failed to download wagers. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-blue-400">Manage Wagers</h1>
-        <Button
-          onClick={() => setIsCreateModalOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Create Wager
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={handleDownloadWagers}
+            variant="outline"
+            className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Download Wagers
+          </Button>
+          <Button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Create Wager
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (
