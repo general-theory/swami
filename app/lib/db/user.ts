@@ -4,8 +4,8 @@ import type { User, Prisma } from '@prisma/client';
 export async function createUser(
   clerkId: string,
   email: string,
-  firstName: string,
-  lastName: string,
+  firstName: string | null,
+  lastName: string | null,
   admin: boolean = false  // Default to false
 ): Promise<User> {
   try {

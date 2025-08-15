@@ -20,8 +20,8 @@ interface ParticipationWithUser {
   balance: number;
   user: {
     clerkId: string;
-    firstName: string;
-    lastName: string;
+    firstName: string | null;
+    lastName: string | null;
     email: string;
   };
   league: {
@@ -171,7 +171,7 @@ export async function POST() {
         usersNeedingBets.push({
           userId: participation.user.clerkId,
           userEmail: participation.user.email,
-          userName: `${participation.user.firstName} ${participation.user.lastName}`,
+          userName: `${participation.user.firstName || ''} ${participation.user.lastName || ''}`.trim() || participation.user.email,
           leagueId: participation.league.id,
           leagueName: participation.league.name,
           balance: participation.balance,

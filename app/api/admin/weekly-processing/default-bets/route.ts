@@ -20,8 +20,8 @@ interface ParticipationWithUser {
   balance: number;
   user: {
     clerkId: string;
-    firstName: string;
-    lastName: string;
+    firstName: string | null;
+    lastName: string | null;
     email: string;
   };
   league: {
@@ -139,7 +139,7 @@ export async function GET() {
       if (currentBetTotal < minBet) {
         playersWithShortfall.push({
           userId: participation.user.clerkId,
-          userName: `${participation.user.firstName} ${participation.user.lastName}`,
+          userName: `${participation.user.firstName || ''} ${participation.user.lastName || ''}`.trim() || participation.user.email,
           userEmail: participation.user.email,
           leagueId: participation.league.id,
           leagueName: participation.league.name,

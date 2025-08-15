@@ -19,8 +19,8 @@ interface ParticipationWithUser {
   balance: number;
   user: {
     clerkId: string;
-    firstName: string;
-    lastName: string;
+    firstName: string | null;
+    lastName: string | null;
     email: string;
   };
   league: {
@@ -134,7 +134,7 @@ export async function POST() {
         usersNeedingReminders.push({
           userId: participation.user.clerkId,
           userEmail: participation.user.email,
-          userName: `${participation.user.firstName} ${participation.user.lastName}`,
+          userName: `${participation.user.firstName || ''} ${participation.user.lastName || ''}`.trim() || participation.user.email,
           leagueName: participation.league.name,
           shortfall: minBet - currentBetTotal,
         });
