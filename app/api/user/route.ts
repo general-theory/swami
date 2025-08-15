@@ -55,8 +55,8 @@ export async function POST() {
     const newUser = await createUser(
       userId,
       userData.email_addresses[0].email_address,
-      userData.first_name,
-      userData.last_name
+      userData.first_name || '',
+      userData.last_name || ''
     );
 
     return NextResponse.json(newUser);
