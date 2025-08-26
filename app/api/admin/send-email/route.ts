@@ -48,7 +48,7 @@ export async function POST(request: Request) {
     }
 
     // Build the where clause for user participations
-    const whereClause: Record<string, any> = { 
+    const whereClause: Record<string, unknown> = { 
       seasonId: activeSeason.id,
       active: true  // Only include active participants
     };

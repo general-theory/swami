@@ -184,6 +184,7 @@ export default function SendEmailPage() {
         });
       }
     } catch (error) {
+      console.error('Error sending emails:', error);
       toast({
         title: 'Error',
         description: 'Failed to send emails',
@@ -227,7 +228,7 @@ export default function SendEmailPage() {
                     name="recipients"
                     value="everyone"
                     checked={recipients === 'everyone'}
-                    onChange={(e) => setRecipients(e.target.value as any)}
+                    onChange={(e) => setRecipients(e.target.value as 'everyone' | 'league' | 'specific')}
                     className="w-4 h-4"
                   />
                   <Label htmlFor="everyone">Everyone (all users in active season)</Label>
@@ -240,7 +241,7 @@ export default function SendEmailPage() {
                     name="recipients"
                     value="league"
                     checked={recipients === 'league'}
-                    onChange={(e) => setRecipients(e.target.value as any)}
+                    onChange={(e) => setRecipients(e.target.value as 'everyone' | 'league' | 'specific')}
                     className="w-4 h-4"
                   />
                   <Label htmlFor="league">Specific League</Label>
@@ -268,7 +269,7 @@ export default function SendEmailPage() {
                     name="recipients"
                     value="specific"
                     checked={recipients === 'specific'}
-                    onChange={(e) => setRecipients(e.target.value as any)}
+                    onChange={(e) => setRecipients(e.target.value as 'everyone' | 'league' | 'specific')}
                     className="w-4 h-4"
                   />
                   <Label htmlFor="specific">Specific Users</Label>
