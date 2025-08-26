@@ -119,7 +119,11 @@ export default function Rules() {
                     </li>
                     <li className="flex items-start gap-3">
                       <span className="text-blue-600 dark:text-blue-400 mt-1">•</span>
-                      <span className="text-gray-700 dark:text-gray-200">Bets can be submitted anytime after Tuesday&apos;s email but cannot be changed once submitted</span>
+                      <span className="text-gray-700 dark:text-gray-200">Bets can be submitted anytime after Tuesday&apos;s email</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <span className="text-blue-600 dark:text-blue-400 mt-1">•</span>
+                      <span className="text-gray-700 dark:text-gray-200">Bets are locked at 12:00 Friday unless you bet on a game that kicked off prior to that. If so, they lock when that game kicks off</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <span className="text-blue-600 dark:text-blue-400 mt-1">•</span>

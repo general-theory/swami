@@ -24,6 +24,7 @@ export async function GET() {
         },
         user: {
           select: {
+            clerkId: true,
             firstName: true,
             lastName: true,
             email: true,
