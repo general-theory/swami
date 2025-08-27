@@ -45,13 +45,15 @@ interface Participation {
   balance: number;
 }
 
-function WagerModal({ open, onClose, game, leagueId, onWagerSuccess, existingWager }: {
+function WagerModal({ open, onClose, game, leagueId, onWagerSuccess, existingWager, participation, currentBetTotal }: {
   open: boolean;
   onClose: () => void;
   game: Game | null;
   leagueId: number | null;
   onWagerSuccess: () => void;
   existingWager?: Wager | null;
+  participation: Participation | null;
+  currentBetTotal: number;
 }) {
   const [pick, setPick] = useState<'home' | 'visit' | ''>('');
   const [amount, setAmount] = useState('');
@@ -78,6 +80,17 @@ function WagerModal({ open, onClose, game, leagueId, onWagerSuccess, existingWag
     if (isNaN(amt) || amt < 0) return setError('Amount must be >= 0.');
     if (amt % 10 !== 0) return setError('Amount must be in $10 increments.');
     if (!leagueId) return setError('No league selected.');
+    
+    // Check max bet limit
+    if (participation) {
+      const { maxBet } = calculateBetLimits(participation.balance);
+      const existingAmount = existingWager ? existingWager.amount : 0;
+      const newTotal = currentBetTotal - existingAmount + amt;
+      if (newTotal > maxBet) {
+        return setError(`This wager would exceed your maximum bet limit. Your current total is $${currentBetTotal}, and your max bet is $${maxBet}.`);
+      }
+    }
+    
     setLoading(true);
     try {
       const method = existingWager ? 'PUT' : 'POST';
@@ -463,6 +476,8 @@ export default function Wager() {
         leagueId={selectedLeagueId}
         onWagerSuccess={handleWagerSuccess}
         existingWager={editingWager}
+        participation={participation}
+        currentBetTotal={currentBetTotal}
       />
     </div>
   );

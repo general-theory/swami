@@ -112,6 +112,11 @@ export async function POST(request: Request) {
           sentCount++;
         }
 
+        // Rate limiting: wait 1 second between emails (1 per second)
+        if (sentCount < participations.length) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+
       } catch (error) {
         console.error(`Failed to send email to ${participation.user.email}:`, error);
         failedEmails.push(participation.user.email);
