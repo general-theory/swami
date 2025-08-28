@@ -135,7 +135,7 @@ function WagerModal({ open, onClose, game, leagueId, onWagerSuccess, existingWag
             )}
           </div>
           <div className="text-xs sm:text-sm">Spread: {game.spread ?? 'N/A'} (Starting: {game.startingSpread ?? 'N/A'})</div>
-          <div className="flex items-center text-xs sm:text-sm"><span className="font-semibold w-16 sm:w-20">Favored:</span> {typeof game.spread === 'number' ? (game.spread >= 0 ? game.homeTeam.name : game.awayTeam.name) : 'N/A'}</div>
+          <div className="flex items-center text-xs sm:text-sm"><span className="font-semibold w-16 sm:w-20">Favored:</span> {typeof game.spread === 'number' ? (game.spread < 0 ? game.homeTeam.name : game.awayTeam.name) : 'N/A'}</div>
         </div>
         <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
