@@ -25,8 +25,18 @@ export async function POST(request: Request) {
       return new NextResponse('Week number is required and must be a number', { status: 400 });
     }
 
-    // Call the stored procedure using Prisma's $executeRaw
-    const result = await prisma.$executeRaw`CALL UpdateGameResultsForWeek(${weekNumber})`;
+    // First, find the Week table's id based on the week number
+    const week = await prisma.week.findFirst({
+      where: { week: weekNumber },
+      select: { id: true }
+    });
+
+    if (!week) {
+      return new NextResponse(`Week ${weekNumber} not found`, { status: 404 });
+    }
+
+    // Call the stored procedure using the Week table's id
+    const result = await prisma.$executeRaw`CALL UpdateGameResultsForWeek(${week.id})`;
 
     return NextResponse.json({
       success: true,

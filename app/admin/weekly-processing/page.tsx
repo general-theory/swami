@@ -274,6 +274,7 @@ export default function WeeklyProcessing() {
 
     setLoading(true);
     try {
+      console.log('active week is', activeWeek.week);
       const response = await fetch('/api/admin/weekly-processing/process-games', {
         method: 'POST',
         headers: {

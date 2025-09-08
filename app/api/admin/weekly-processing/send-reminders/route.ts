@@ -147,7 +147,7 @@ export async function POST() {
     let sentCount = 0;
     const skippedCount = 0;
 
-    // Send emails using Resend
+    // Send emails using Resend with rate limiting (1 email per second)
     for (const user of usersToEmail) {
       try {
         const { data, error } = await resend.emails.send({
@@ -176,6 +176,11 @@ export async function POST() {
 
       } catch (error) {
         console.error(`Failed to send email to ${user.userEmail}:`, error);
+      }
+
+      // Add 1-second delay between emails to respect rate limiting
+      if (usersToEmail.indexOf(user) < usersToEmail.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
     }
 
