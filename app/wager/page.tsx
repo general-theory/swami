@@ -81,9 +81,12 @@ function WagerModal({ open, onClose, game, leagueId, onWagerSuccess, existingWag
     if (amt % 10 !== 0) return setError('Amount must be in $10 increments.');
     if (!leagueId) return setError('No league selected.');
     
-    // Check max bet limit
+    // Check if player is out of the game
     if (participation) {
-      const { maxBet } = calculateBetLimits(participation.balance);
+      const { maxBet, isOutOfGame } = calculateBetLimits(participation.balance);
+      if (isOutOfGame) {
+        return setError('You are out of the game and cannot place wagers.');
+      }
       const existingAmount = existingWager ? existingWager.amount : 0;
       const newTotal = currentBetTotal - existingAmount + amt;
       if (newTotal > maxBet) {
@@ -284,7 +287,7 @@ export default function Wager() {
   }, [selectedLeagueId, games]);
 
   // Calculate bet limits using the same logic as standings page
-  const { minBet, maxBet } = participation ? calculateBetLimits(participation.balance) : { minBet: 0, maxBet: 0 };
+  const { minBet, maxBet, isOutOfGame } = participation ? calculateBetLimits(participation.balance) : { minBet: 0, maxBet: 0, isOutOfGame: false };
   
   // Calculate current bet total for the selected league and week
   const currentBetTotal = wagers.reduce((sum, w) => sum + w.amount, 0);
@@ -304,8 +307,13 @@ export default function Wager() {
     );
   }
 
+
   const handleGameClick = (game: Game) => {
     if (!wagersAllowed) return;
+    if (participation && isOutOfGame) {
+      toast({ title: "You are out of the game and cannot place wagers.", variant: "destructive" });
+      return;
+    }
     const now = new Date();
     const gameStart = new Date(game.startDate);
     if (now >= gameStart) {
@@ -327,6 +335,12 @@ export default function Wager() {
     <div className="container mx-auto p-8">
       {!wagersAllowed && (
         <div className="mb-4 p-4 bg-error text-white text-center rounded font-bold text-lg">Wagers Locked</div>
+      )}
+      
+      {participation && isOutOfGame && (
+        <div className="mb-4 p-4 bg-error text-white text-center rounded font-bold text-lg">
+          You&apos;re Out of the Game! (Balance: ${participation.balance.toFixed(2)}) - You cannot place wagers.
+        </div>
       )}
       
       {!participation && selectedLeagueId && games.length > 0 && (

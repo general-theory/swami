@@ -28,6 +28,24 @@ export async function POST(request: Request) {
       return new NextResponse('Invalid pick', { status: 400 });
     }
 
+    // Check if user is out of the game
+    const participation = await prisma.userParticipation.findFirst({
+      where: {
+        userId: user.id,
+        leagueId: leagueId,
+        active: true
+      },
+      select: { balance: true }
+    });
+
+    if (!participation) {
+      return new NextResponse('User not found in this league', { status: 404 });
+    }
+
+    if (participation.balance <= -1000) {
+      return new NextResponse('You are out of the game and cannot place wagers', { status: 403 });
+    }
+
     const wager = await prisma.wager.create({
       data: {
         userId: user.id,

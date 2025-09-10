@@ -77,6 +77,7 @@ export default function StandingsTable({ columns, data }: StandingsTableProps) {
       );
     }
     
+    
     if (typeof value === 'number') {
       const formattedNumber = value.toLocaleString('en-US', {
         minimumFractionDigits: 2,

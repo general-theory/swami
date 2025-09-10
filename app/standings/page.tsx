@@ -28,6 +28,7 @@ interface Standing {
   balance: number;
   minBet: number;
   maxBet: number;
+  isOutOfGame: boolean;
 }
 
 export default function Standings() {

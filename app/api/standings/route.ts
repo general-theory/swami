@@ -69,7 +69,7 @@ export async function GET() {
 
     // Transform the data to use email if nickname is empty and calculate bet limits
     const transformedStandings = standings.map(standing => {
-      const { minBet, maxBet } = calculateBetLimits(standing.balance);
+      const { minBet, maxBet, isOutOfGame } = calculateBetLimits(standing.balance);
       return {
         id: standing.id,
         league: standing.league,
@@ -82,6 +82,7 @@ export async function GET() {
         balance: standing.balance,
         minBet,
         maxBet,
+        isOutOfGame,
       };
     });
 
