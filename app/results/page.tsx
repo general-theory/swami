@@ -64,6 +64,8 @@ interface UserSummary {
   totalWagered: number;
   gamesWagered: number;
   balanceImpact: number;
+  wins: number;
+  losses: number;
   wagers: Wager[];
 }
 
@@ -252,6 +254,25 @@ function ResultsView({ leagueId, weekId }: { leagueId: number | null; weekId: nu
     );
   }
 
+  // Helper function to determine wager result
+  const getWagerResult = (wager: Wager, game: Game) => {
+    if (!game.completed || game.homePoints === null || game.awayPoints === null) {
+      return null;
+    }
+
+    const homeScore = game.homePoints;
+    const awayScore = game.awayPoints;
+    const spread = game.spread || 0;
+    
+    const adjustedHomeScore = homeScore + spread;
+    const homeWon = adjustedHomeScore > awayScore;
+    
+    const userPickedHome = wager.pick === 'home';
+    const userWon = (userPickedHome && homeWon) || (!userPickedHome && !homeWon);
+    
+    return userWon ? 'win' : 'loss';
+  };
+
   // Calculate game summaries
   const gameSummaries: GameSummary[] = games.map(game => {
     const gameWagers = wagers.filter(w => w.gameId === game.id);
@@ -290,16 +311,91 @@ function ResultsView({ leagueId, weekId }: { leagueId: number | null; weekId: nu
     const gamesWagered = new Set(userWagers.map(w => w.gameId)).size;
     const balanceImpact = userWagers.reduce((sum, w) => sum + w.balanceImpact, 0);
 
+    // Calculate wins and losses
+    let wins = 0;
+    let losses = 0;
+    userWagers.forEach(wager => {
+      const game = games.find(g => g.id === wager.gameId);
+      if (game) {
+        const result = getWagerResult(wager, game);
+        if (result === 'win') wins++;
+        else if (result === 'loss') losses++;
+      }
+    });
+
     return {
       user,
       totalWagered,
       gamesWagered,
       balanceImpact,
+      wins,
+      losses,
       wagers: userWagers
     };
   }).filter(Boolean) as UserSummary[];
 
   const totalLeagueWagered = userSummaries.reduce((sum, u) => sum + u.totalWagered, 0);
+
+  // Calculate team betting stats
+  const teamBettingStats = games.reduce((acc, game) => {
+    const gameWagers = wagers.filter(w => w.gameId === game.id);
+    
+    // Home team stats
+    const homeWagers = gameWagers.filter(w => w.pick === 'home');
+    const homeBetCount = homeWagers.length;
+    const homeBetAmount = homeWagers.reduce((sum, w) => sum + w.amount, 0);
+    
+    // Away team stats
+    const awayWagers = gameWagers.filter(w => w.pick === 'visit');
+    const awayBetCount = awayWagers.length;
+    const awayBetAmount = awayWagers.reduce((sum, w) => sum + w.amount, 0);
+    
+    // Update home team totals
+    if (!acc[game.homeTeam.name]) {
+      acc[game.homeTeam.name] = { betCount: 0, betAmount: 0 };
+    }
+    acc[game.homeTeam.name].betCount += homeBetCount;
+    acc[game.homeTeam.name].betAmount += homeBetAmount;
+    
+    // Update away team totals
+    if (!acc[game.awayTeam.name]) {
+      acc[game.awayTeam.name] = { betCount: 0, betAmount: 0 };
+    }
+    acc[game.awayTeam.name].betCount += awayBetCount;
+    acc[game.awayTeam.name].betAmount += awayBetAmount;
+    
+    return acc;
+  }, {} as Record<string, { betCount: number; betAmount: number }>);
+
+  const mostBetTeam = Object.entries(teamBettingStats).reduce((max, [team, stats]) => 
+    stats.betCount > max.betCount ? { team, ...stats } : max, 
+    { team: '', betCount: 0, betAmount: 0 }
+  );
+
+  const highestDollarTeam = Object.entries(teamBettingStats).reduce((max, [team, stats]) => 
+    stats.betAmount > max.betAmount ? { team, ...stats } : max, 
+    { team: '', betCount: 0, betAmount: 0 }
+  );
+
+  // Calculate win/loss stats
+  const leagueWinLoss = userSummaries.reduce((totals, userSummary) => {
+    const userWagers = userSummary.wagers;
+    let wins = 0;
+    let losses = 0;
+    
+    userWagers.forEach(wager => {
+      const game = games.find(g => g.id === wager.gameId);
+      if (game) {
+        const result = getWagerResult(wager, game);
+        if (result === 'win') wins++;
+        else if (result === 'loss') losses++;
+      }
+    });
+    
+    totals.wins += wins;
+    totals.losses += losses;
+    return totals;
+  }, { wins: 0, losses: 0 });
 
   return (
     <div className="space-y-8">
@@ -316,6 +412,21 @@ function ResultsView({ leagueId, weekId }: { leagueId: number | null; weekId: nu
         <div className="stat">
           <div className="stat-title">Games</div>
           <div className="stat-value">{games.length}</div>
+        </div>
+        <div className="stat">
+          <div className="stat-title">Most Bet Team</div>
+          <div className="stat-value text-secondary">{mostBetTeam.team || 'N/A'}</div>
+          <div className="stat-desc">{mostBetTeam.betCount} bets</div>
+        </div>
+        <div className="stat">
+          <div className="stat-title">Highest $ Team</div>
+          <div className="stat-value text-accent">{highestDollarTeam.team || 'N/A'}</div>
+          <div className="stat-desc">♠{highestDollarTeam.betAmount.toLocaleString()}</div>
+        </div>
+        <div className="stat">
+          <div className="stat-title">League Record</div>
+          <div className="stat-value text-info">{leagueWinLoss.wins}-{leagueWinLoss.losses}</div>
+          <div className="stat-desc">Wins-Losses</div>
         </div>
       </div>
 
@@ -343,6 +454,7 @@ function ResultsView({ leagueId, weekId }: { leagueId: number | null; weekId: nu
                   <th className="text-center">Games Wagered</th>
                   <th className="text-center">Total Wagered</th>
                   <th className="text-center">Avg Per Game</th>
+                  <th className="text-center">Record</th>
                   <th className="text-center">Balance Impact</th>
                 </tr>
               </thead>
@@ -359,6 +471,12 @@ function ResultsView({ leagueId, weekId }: { leagueId: number | null; weekId: nu
                       <td className="text-center font-semibold">♠{summary.totalWagered.toLocaleString()}</td>
                       <td className="text-center">
                         ♠{summary.gamesWagered > 0 ? Math.round(summary.totalWagered / summary.gamesWagered) : 0}
+                      </td>
+                      <td className="text-center font-medium">
+                        <span className={`badge ${summary.wins > summary.losses ? 'badge-success' : 
+                          summary.losses > summary.wins ? 'badge-error' : 'badge-neutral'}`}>
+                          {summary.wins}-{summary.losses}
+                        </span>
                       </td>
                       <td className={`text-center font-semibold ${
                         summary.balanceImpact > 0 ? 'text-green-600' : 
