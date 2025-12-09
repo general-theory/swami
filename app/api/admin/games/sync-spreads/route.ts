@@ -61,7 +61,12 @@ export async function POST(request: Request) {
           { status: 400 }
         );
       }
-      url += `&week=${week.week}`;
+      if(week.week === 16){
+        url = `https://api.collegefootballdata.com/lines?year=${year}&seasonType=postseason&provider=Bovada&week=1`;
+      } else {
+        url = `https://api.collegefootballdata.com/lines?year=${year}&seasonType=both&provider=Bovada&week=${week.week}`;
+      }
+      //url += `&week=${week.week}`;
     }
 
     // Fetch spreads from CFBD API

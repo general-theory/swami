@@ -28,10 +28,13 @@ export async function syncGamesForWeek(weekId: number): Promise<SyncResult> {
   }
 
   console.log(`Starting sync for Week ${week.week}, Season ${week.season.year}`);
-
+  let fetchUrl = `https://api.collegefootballdata.com/games?year=${week.season.year}&week=${week.week}&seasonType=both&classification=fbs`;
+  if(week.week === 16){
+    fetchUrl = `https://api.collegefootballdata.com/games?year=${week.season.year}&week=1&seasonType=postseason&classification=fbs`;
+  }
   // Fetch games from CFBD API for specific year and week
-  const response = await fetch(
-    `https://api.collegefootballdata.com/games?year=${week.season.year}&week=${week.week}&seasonType=both&classification=fbs`,
+  const response = await fetch(fetchUrl,
+//    `https://api.collegefootballdata.com/games?year=${week.season.year}&week=${week.week}&seasonType=both&classification=fbs`,
     {
       headers: {
         'Authorization': `Bearer ${process.env.CFBD_API_KEY}`,
