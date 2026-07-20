@@ -36,7 +36,10 @@ export async function POST(request: Request) {
     return NextResponse.json({
       message: 'Games synced successfully',
       added: result.added,
-      updated: result.updated
+      updated: result.updated,
+      weekNumber: result.weekNumber,
+      seasonYear: result.seasonYear,
+      fetchUrl: result.fetchUrl
     });
   } catch (error) {
     console.error('Error syncing games:', error);

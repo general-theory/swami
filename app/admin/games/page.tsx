@@ -299,6 +299,10 @@ export default function GamesAdmin() {
     }
   };
 
+  const weeksForSelectedSeason = selectedSeason === 'all'
+    ? []
+    : weeks.filter((week) => week.seasonId === parseInt(selectedSeason, 10));
+
   const filteredGames = games.filter(game => {
     const selectedSeasonId = selectedSeason === 'all' ? null : parseInt(selectedSeason, 10);
     const selectedWeekId = selectedWeek === 'all' ? null : parseInt(selectedWeek, 10);
@@ -377,7 +381,10 @@ export default function GamesAdmin() {
             <select
               id="season"
               value={selectedSeason}
-              onChange={(e) => setSelectedSeason(e.target.value)}
+              onChange={(e) => {
+                setSelectedSeason(e.target.value);
+                setSelectedWeek('all');
+              }}
               className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             >
               <option value="all">All Seasons</option>
@@ -397,10 +404,13 @@ export default function GamesAdmin() {
               id="week"
               value={selectedWeek}
               onChange={(e) => setSelectedWeek(e.target.value)}
-              className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              disabled={selectedSeason === 'all'}
+              className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:bg-gray-200 disabled:cursor-not-allowed"
             >
-              <option value="all">All Weeks</option>
-              {weeks.map((week) => (
+              <option value="all">
+                {selectedSeason === 'all' ? 'Select a season first' : 'All Weeks'}
+              </option>
+              {weeksForSelectedSeason.map((week) => (
                 <option key={week.id} value={week.id}>
                   Week {week.week}
                 </option>

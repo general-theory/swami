@@ -6,6 +6,7 @@ export interface SyncResult {
   weekId: number;
   weekNumber: number;
   seasonYear: number;
+  fetchUrl: string;
 }
 
 export async function syncGamesForWeek(weekId: number): Promise<SyncResult> {
@@ -114,6 +115,7 @@ export async function syncGamesForWeek(weekId: number): Promise<SyncResult> {
     updated,
     weekId: week.id,
     weekNumber: week.week,
-    seasonYear: week.season.year
+    seasonYear: week.season.year,
+    fetchUrl
   };
 } 
