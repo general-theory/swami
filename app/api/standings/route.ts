@@ -19,11 +19,18 @@ export async function GET() {
       return new NextResponse('User not found', { status: 404 });
     }
 
-    // Get user's active leagues
+    // Get the current season, so the league dropdown only shows this year's leagues
+    const activeSeason = await prisma.season.findFirst({
+      where: { active: true },
+      select: { id: true },
+    });
+
+    // Get user's active leagues for the current season
     const userLeagues = await prisma.userParticipation.findMany({
       where: {
         userId: currentUser.id,
         active: true,
+        ...(activeSeason ? { seasonId: activeSeason.id } : {}),
       },
       include: {
         league: {
@@ -72,6 +79,7 @@ export async function GET() {
       const { minBet, maxBet, isOutOfGame } = calculateBetLimits(standing.balance);
       return {
         id: standing.id,
+        seasonId: standing.seasonId,
         league: standing.league,
         user: {
           ...standing.user,
@@ -95,6 +103,7 @@ export async function GET() {
     return NextResponse.json({
       standings: transformedStandings,
       userLeagues: leagues,
+      currentSeasonId: activeSeason?.id ?? null,
     });
   } catch (error) {
     console.error('Error fetching standings:', error);

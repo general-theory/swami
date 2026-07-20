@@ -11,6 +11,7 @@ interface League {
 
 interface Standing {
   id: number;
+  seasonId: number;
   league: {
     id: number;
     name: string;
@@ -34,7 +35,8 @@ interface Standing {
 export default function Standings() {
   const [standings, setStandings] = useState<Standing[]>([]);
   const [userLeagues, setUserLeagues] = useState<League[]>([]);
-  const [selectedLeagueId, setSelectedLeagueId] = useState<number | 'all'>('all');
+  const [currentSeasonId, setCurrentSeasonId] = useState<number | null>(null);
+  const [selectedLeagueId, setSelectedLeagueId] = useState<number | 'current' | 'all'>('current');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -46,14 +48,15 @@ export default function Standings() {
       const response = await fetch('/api/standings');
       if (!response.ok) throw new Error('Failed to fetch standings');
       const data = await response.json();
-      
+
       setUserLeagues(data.userLeagues);
-      
+      setCurrentSeasonId(data.currentSeasonId);
+
       // Filter for active leagues and sort by balance
       const filteredData = data.standings
         .filter((standing: Standing) => standing.league.active)
         .sort((a: Standing, b: Standing) => b.balance - a.balance);
-      
+
       setStandings(filteredData);
     } catch (error) {
       console.error('Error fetching standings:', error);
@@ -64,7 +67,11 @@ export default function Standings() {
 
   const filteredStandings = selectedLeagueId === 'all'
     ? standings
-    : standings.filter(standing => standing.league.id === selectedLeagueId);
+    : selectedLeagueId === 'current'
+    ? standings.filter(standing => standing.seasonId === currentSeasonId)
+    : standings.filter(standing =>
+        standing.league.id === selectedLeagueId && standing.seasonId === currentSeasonId
+      );
 
   const columns = [
     { header: 'League', accessor: 'league.name' },
@@ -100,13 +107,18 @@ export default function Standings() {
               </label>
               <Select
                 value={selectedLeagueId.toString()}
-                onValueChange={(value) => setSelectedLeagueId(value === 'all' ? 'all' : Number(value))}
+                onValueChange={(value) =>
+                  setSelectedLeagueId(
+                    value === 'all' || value === 'current' ? value : Number(value)
+                  )
+                }
               >
-                <SelectTrigger className="w-48">
+                <SelectTrigger className="w-56">
                   <SelectValue placeholder="Select a league" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Leagues</SelectItem>
+                  <SelectItem value="current">All Leagues (Current Season)</SelectItem>
+                  <SelectItem value="all">All Leagues (All Time)</SelectItem>
                   {userLeagues.map((league) => (
                     <SelectItem key={league.id} value={league.id.toString()}>
                       {league.name}
