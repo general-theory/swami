@@ -26,6 +26,7 @@ export default function AdminNav() {
     { href: '/admin/weeks', label: 'Weeks', icon: CalendarIcon },
     { href: '/admin/games', label: 'Games', icon: TrophyIcon },
     { href: '/admin/leagues', label: 'Leagues', icon: TrophyIcon },
+    { href: '/admin/champions', label: 'Champions', icon: TrophyIcon },
     { href: '/admin/participations', label: 'Participations', icon: UsersIcon },
     { href: '/admin/wagers', label: 'Wagers', icon: CurrencyDollarIcon },
     { href: '/admin/weekly-processing', label: 'Weekly Processing', icon: CogIcon },

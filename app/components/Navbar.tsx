@@ -108,6 +108,12 @@ export default function Navbar() {
                 >
                   My History
                 </Link>
+                <Link
+                  href="/champions"
+                  className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 font-medium"
+                >
+                  Champions
+                </Link>
                 {hasActiveLeagues && (
                   <Link
                     href="/wager"
@@ -210,6 +216,13 @@ export default function Navbar() {
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     My History
+                  </Link>
+                  <Link
+                    href="/champions"
+                    className="block px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 font-medium"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Champions
                   </Link>
                   {hasActiveLeagues && (
                     <Link 

@@ -22,6 +22,7 @@ model User {
   favoriteTeam   Team?               @relation("UserFavoriteTeam", fields: [favTeamId], references: [id])
   participations UserParticipation[]
   wagers         Wager[]
+  championships  Champion[]
 
   @@index([favTeamId])
 }
@@ -36,6 +37,7 @@ model Season {
   games          Game[]
   participations UserParticipation[]
   weeks          Week[]
+  champions      Champion[]
 }
 
 model League {
@@ -47,6 +49,7 @@ model League {
   updatedAt      DateTime            @updatedAt
   participations UserParticipation[]
   wagers         Wager[]
+  champions      Champion[]
 }
 
 model UserParticipation {
@@ -176,4 +179,21 @@ model EmailReminder {
 
   @@index([userId])
   @@index([sentAt])
+}
+
+model Champion {
+  id        Int      @id @default(autoincrement())
+  leagueId  Int
+  userId    Int
+  seasonId  Int
+  photoUrl  String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  league    League   @relation(fields: [leagueId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+  season    Season   @relation(fields: [seasonId], references: [id])
+
+  @@index([leagueId])
+  @@index([userId])
+  @@index([seasonId])
 }
