@@ -3,6 +3,7 @@ import { useAuth } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { Dialog, DialogContent, DialogTitle } from "../components/ui/dialog";
 
 interface League {
   id: number;
@@ -20,6 +21,11 @@ interface User {
   lastName: string;
   nickName: string | null;
   email: string;
+  balance: number;
+}
+
+function displayName(user: User): string {
+  return user.nickName || `${user.firstName} ${user.lastName}`.trim() || user.email;
 }
 
 interface Game {
@@ -176,16 +182,21 @@ export default function Results() {
         </div>
       </div>
       
-      <ResultsView leagueId={selectedLeagueId} weekId={selectedWeekId} />
+      <ResultsView
+        leagueId={selectedLeagueId}
+        weekId={selectedWeekId}
+        weekNumber={weeks.find(w => w.id === selectedWeekId)?.week ?? null}
+      />
     </div>
   );
 }
 
-function ResultsView({ leagueId, weekId }: { leagueId: number | null; weekId: number | null }) {
+function ResultsView({ leagueId, weekId, weekNumber }: { leagueId: number | null; weekId: number | null; weekNumber: number | null }) {
   const [games, setGames] = useState<Game[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [wagers, setWagers] = useState<Wager[]>([]);
   const [loading, setLoading] = useState(false);
+  const [recapOpen, setRecapOpen] = useState(false);
 
   useEffect(() => {
     if (!leagueId || !weekId) return;
@@ -397,8 +408,92 @@ function ResultsView({ leagueId, weekId }: { leagueId: number | null; weekId: nu
     return totals;
   }, { wins: 0, losses: 0 });
 
+  const allGamesCompleted = games.length > 0 && games.every(g => g.completed);
+  const wageredSummaries = userSummaries.filter(u => u.totalWagered > 0);
+
+  // Pre-game stats
+  const biggestSingleBet = wagers.reduce<{ user: User; game: Game; wager: Wager } | null>((max, wager) => {
+    if (max && wager.amount <= max.wager.amount) return max;
+    const user = users.find(u => u.id === wager.userId);
+    const game = games.find(g => g.id === wager.gameId);
+    return user && game ? { user, game, wager } : max;
+  }, null);
+
+  const contrarianTeam = Object.entries(teamBettingStats)
+    .filter(([, stats]) => stats.betCount > 0)
+    .reduce<{ team: string; betCount: number; betAmount: number } | null>((min, [team, stats]) =>
+      (!min || stats.betCount < min.betCount) ? { team, ...stats } : min, null);
+
+  // Post-game stats (only meaningful once every game this week has finished)
+  const biggestWinner = wageredSummaries.reduce<UserSummary | null>((max, u) =>
+    (!max || u.balanceImpact > max.balanceImpact) ? u : max, null);
+  const biggestLoser = wageredSummaries.reduce<UserSummary | null>((min, u) =>
+    (!min || u.balanceImpact < min.balanceImpact) ? u : min, null);
+  const perfectWeekUsers = wageredSummaries.filter(u => u.wins > 0 && u.losses === 0);
+  const worstWeekUsers = wageredSummaries.filter(u => u.losses > 0 && u.wins === 0);
+
+  const bestUpsetCall = wagers.reduce<{ user: User; game: Game; wager: Wager; spreadMagnitude: number } | null>((best, wager) => {
+    const game = games.find(g => g.id === wager.gameId);
+    if (!game || game.spread === null || getWagerResult(wager, game) !== 'win') return best;
+    const isHomeFavored = game.spread < 0;
+    const underdogSide: 'home' | 'visit' = isHomeFavored ? 'visit' : 'home';
+    if (wager.pick !== underdogSide) return best;
+    const spreadMagnitude = Math.abs(game.spread);
+    if (best && spreadMagnitude <= best.spreadMagnitude) return best;
+    const user = users.find(u => u.id === wager.userId);
+    return user ? { user, game, wager, spreadMagnitude } : best;
+  }, null);
+
+  // Rank movement: there's no per-week balance snapshot stored, so "before this week" is
+  // reconstructed by backing this week's wager impact out of the user's current balance.
+  // This is exact for the most recently played week, but only approximate for older ones.
+  const usersWithBalance = users.filter(u => typeof u.balance === 'number');
+  const previousBalances = new Map(usersWithBalance.map(u => {
+    const impact = wagers.filter(w => w.userId === u.id).reduce((sum, w) => sum + w.balanceImpact, 0);
+    return [u.id, u.balance - impact];
+  }));
+  const currentRanks = new Map(
+    [...usersWithBalance].sort((a, b) => b.balance - a.balance).map((u, idx) => [u.id, idx + 1])
+  );
+  const previousRanks = new Map(
+    [...usersWithBalance]
+      .sort((a, b) => (previousBalances.get(b.id) ?? 0) - (previousBalances.get(a.id) ?? 0))
+      .map((u, idx) => [u.id, idx + 1])
+  );
+  const rankChanges = usersWithBalance.map(u => {
+    const currentRank = currentRanks.get(u.id) ?? 0;
+    const previousRank = previousRanks.get(u.id) ?? currentRank;
+    return { user: u, currentRank, previousRank, delta: previousRank - currentRank };
+  });
+  const biggestRiser = rankChanges.reduce((max, r) => (!max || r.delta > max.delta) ? r : max, null as typeof rankChanges[number] | null);
+  const biggestFaller = rankChanges.reduce((min, r) => (!min || r.delta < min.delta) ? r : min, null as typeof rankChanges[number] | null);
+
   return (
     <div className="space-y-8">
+      <div className="flex justify-end">
+        <button className="btn btn-primary btn-sm" onClick={() => setRecapOpen(true)}>
+          🏆 Week {weekNumber ?? ''} Recap
+        </button>
+      </div>
+
+      <WeeklyRecapModal
+        open={recapOpen}
+        onClose={() => setRecapOpen(false)}
+        weekNumber={weekNumber}
+        allGamesCompleted={allGamesCompleted}
+        highestDollarTeam={highestDollarTeam}
+        mostBetTeam={mostBetTeam}
+        contrarianTeam={contrarianTeam}
+        biggestSingleBet={biggestSingleBet}
+        biggestWinner={biggestWinner}
+        biggestLoser={biggestLoser}
+        perfectWeekUsers={perfectWeekUsers}
+        worstWeekUsers={worstWeekUsers}
+        bestUpsetCall={bestUpsetCall}
+        biggestRiser={biggestRiser}
+        biggestFaller={biggestFaller}
+      />
+
       {/* League Summary */}
       <div className="stats shadow">
         <div className="stat">
@@ -647,7 +742,7 @@ function UserWagersCard({ userSummary, games }: { userSummary: UserSummary; game
                 <div className="text-right">
                   <div className="font-semibold">♠{wager.amount.toLocaleString()}</div>
                   <div className="text-xs text-gray-500">
-                    {game.awayPoints !== null && game.homePoints !== null 
+                    {game.awayPoints !== null && game.homePoints !== null
                       ? `${game.awayPoints}-${game.homePoints}`
                       : 'Pending'
                     }
@@ -657,6 +752,127 @@ function UserWagersCard({ userSummary, games }: { userSummary: UserSummary; game
             );
           })}
         </div>
+      </div>
+    </div>
+  );
+}
+
+interface RankChange {
+  user: User;
+  currentRank: number;
+  previousRank: number;
+  delta: number;
+}
+
+function WeeklyRecapModal({
+  open,
+  onClose,
+  weekNumber,
+  allGamesCompleted,
+  highestDollarTeam,
+  mostBetTeam,
+  contrarianTeam,
+  biggestSingleBet,
+  biggestWinner,
+  biggestLoser,
+  perfectWeekUsers,
+  worstWeekUsers,
+  bestUpsetCall,
+  biggestRiser,
+  biggestFaller,
+}: {
+  open: boolean;
+  onClose: () => void;
+  weekNumber: number | null;
+  allGamesCompleted: boolean;
+  highestDollarTeam: { team: string; betCount: number; betAmount: number };
+  mostBetTeam: { team: string; betCount: number; betAmount: number };
+  contrarianTeam: { team: string; betCount: number; betAmount: number } | null;
+  biggestSingleBet: { user: User; game: Game; wager: Wager } | null;
+  biggestWinner: UserSummary | null;
+  biggestLoser: UserSummary | null;
+  perfectWeekUsers: UserSummary[];
+  worstWeekUsers: UserSummary[];
+  bestUpsetCall: { user: User; game: Game; wager: Wager; spreadMagnitude: number } | null;
+  biggestRiser: RankChange | null;
+  biggestFaller: RankChange | null;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={v => !v && onClose()}>
+      <DialogContent className="max-w-2xl w-full max-h-[85vh] overflow-y-auto">
+        <DialogTitle className="text-2xl">🏆 Week {weekNumber ?? ''} Recap</DialogTitle>
+
+        <div className="space-y-6 mt-2">
+          <div>
+            <h3 className="font-bold text-lg mb-2">Before Kickoff</h3>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <RecapStat label="Most Money On" value={highestDollarTeam.team || 'N/A'} detail={`♠${highestDollarTeam.betAmount.toLocaleString()} wagered`} />
+              <RecapStat label="Most People On" value={mostBetTeam.team || 'N/A'} detail={`${mostBetTeam.betCount} bettors`} />
+              {biggestSingleBet && (
+                <RecapStat
+                  label="Biggest Single Bet"
+                  value={`♠${biggestSingleBet.wager.amount.toLocaleString()}`}
+                  detail={`${displayName(biggestSingleBet.user)} on ${biggestSingleBet.wager.pick === 'home' ? biggestSingleBet.game.homeTeam.name : biggestSingleBet.game.awayTeam.name}`}
+                />
+              )}
+              {contrarianTeam && (
+                <RecapStat
+                  label="Went Against the Crowd"
+                  value={contrarianTeam.team}
+                  detail={`Only ${contrarianTeam.betCount} bettor${contrarianTeam.betCount === 1 ? '' : 's'}`}
+                />
+              )}
+            </div>
+          </div>
+
+          <div>
+            <h3 className="font-bold text-lg mb-2">After the Dust Settled</h3>
+            {!allGamesCompleted ? (
+              <p className="text-sm text-gray-500">Check back once this week&apos;s games wrap up for winners, losers, and rank movement.</p>
+            ) : (
+              <div className="grid gap-2 sm:grid-cols-2">
+                {biggestWinner && (
+                  <RecapStat label="Biggest Winner" value={displayName(biggestWinner.user)} detail={`+♠${biggestWinner.balanceImpact.toLocaleString()}`} good />
+                )}
+                {biggestLoser && (
+                  <RecapStat label="Biggest Loser" value={displayName(biggestLoser.user)} detail={`♠${biggestLoser.balanceImpact.toLocaleString()}`} bad />
+                )}
+                {perfectWeekUsers.length > 0 && (
+                  <RecapStat label="Perfect Week" value={perfectWeekUsers.map(u => displayName(u.user)).join(', ')} detail={`${perfectWeekUsers[0].wins}-0`} good />
+                )}
+                {worstWeekUsers.length > 0 && (
+                  <RecapStat label="Winless Week" value={worstWeekUsers.map(u => displayName(u.user)).join(', ')} detail={`0-${worstWeekUsers[0].losses}`} bad />
+                )}
+                {bestUpsetCall && (
+                  <RecapStat
+                    label="Best Upset Call"
+                    value={displayName(bestUpsetCall.user)}
+                    detail={`Took the ${bestUpsetCall.spreadMagnitude}-pt dog and covered`}
+                    good
+                  />
+                )}
+                {biggestRiser && biggestRiser.delta > 0 && (
+                  <RecapStat label="Biggest Riser" value={displayName(biggestRiser.user)} detail={`Up ${biggestRiser.delta} spot${biggestRiser.delta === 1 ? '' : 's'} to #${biggestRiser.currentRank}`} good />
+                )}
+                {biggestFaller && biggestFaller.delta < 0 && (
+                  <RecapStat label="Biggest Faller" value={displayName(biggestFaller.user)} detail={`Down ${Math.abs(biggestFaller.delta)} spot${Math.abs(biggestFaller.delta) === 1 ? '' : 's'} to #${biggestFaller.currentRank}`} bad />
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function RecapStat({ label, value, detail, good, bad }: { label: string; value: string; detail?: string; good?: boolean; bad?: boolean }) {
+  return (
+    <div className="card bg-base-200 shadow-sm">
+      <div className="card-body p-3">
+        <div className="text-xs text-gray-500">{label}</div>
+        <div className={`font-bold ${good ? 'text-green-600' : bad ? 'text-red-600' : ''}`}>{value}</div>
+        {detail && <div className="text-xs text-gray-500">{detail}</div>}
       </div>
     </div>
   );

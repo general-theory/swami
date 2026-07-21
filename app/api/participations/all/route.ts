@@ -30,7 +30,7 @@ export async function GET(request: Request) {
       }
     });
 
-    const users = participations.map(p => p.user);
+    const users = participations.map(p => ({ ...p.user, balance: p.balance }));
     return NextResponse.json(users);
   } catch (error) {
     console.error('Error fetching all participants:', error);

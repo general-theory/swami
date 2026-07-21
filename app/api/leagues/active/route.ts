@@ -18,11 +18,18 @@ export async function GET() {
       return new NextResponse('User not found', { status: 404 });
     }
 
+    // Get the current season, so leagues aren't duplicated across years
+    const activeSeason = await prisma.season.findFirst({
+      where: { active: true },
+      select: { id: true }
+    });
+
     // Get active participations for this user, include league info
     const participations = await prisma.userParticipation.findMany({
       where: {
         userId: user.id,
-        active: true
+        active: true,
+        ...(activeSeason ? { seasonId: activeSeason.id } : {})
       },
       include: {
         league: {

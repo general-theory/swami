@@ -28,11 +28,21 @@ export async function POST(request: Request) {
       return new NextResponse('Invalid pick', { status: 400 });
     }
 
-    // Check if user is out of the game
+    const game = await prisma.game.findUnique({
+      where: { id: gameId },
+      select: { seasonId: true }
+    });
+    if (!game) {
+      return new NextResponse('Game not found', { status: 404 });
+    }
+
+    // Check if user is out of the game (scoped to the game's season, since a
+    // user has one UserParticipation row per league per season)
     const participation = await prisma.userParticipation.findFirst({
       where: {
         userId: user.id,
         leagueId: leagueId,
+        seasonId: game.seasonId,
         active: true
       },
       select: { balance: true }

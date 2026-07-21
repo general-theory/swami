@@ -96,39 +96,45 @@ export default function Navbar() {
                 >
                   Standings
                 </Link>
-                <Link 
-                  href="/results" 
+                <Link
+                  href="/results"
                   className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 font-medium"
                 >
                   Latest Results
                 </Link>
+                <Link
+                  href="/history"
+                  className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 font-medium"
+                >
+                  My History
+                </Link>
                 {hasActiveLeagues && (
-                  <Link 
-                    href="/wager" 
+                  <Link
+                    href="/wager"
                     className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 transition-colors duration-200 font-medium"
                   >
                     Wager
                   </Link>
                 )}
                 {isAdmin && (
-                  <Link 
-                    href="/admin" 
+                  <Link
+                    href="/admin"
                     className="text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 dark:hover:text-yellow-300 transition-colors duration-200 font-medium"
                   >
                     Admin
                   </Link>
                 )}
-                <Link 
-                  href="/profile" 
+                <Link
+                  href="/profile"
                   className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-200 font-medium"
                 >
                   Profile
                 </Link>
               </>
             )}
-            
-            <Link 
-              href="/rules" 
+
+            <Link
+              href="/rules"
               className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 font-medium"
             >
               Rules
@@ -191,12 +197,19 @@ export default function Navbar() {
                   >
                     Standings
                   </Link>
-                  <Link 
-                    href="/results" 
+                  <Link
+                    href="/results"
                     className="block px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 font-medium"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Latest Results
+                  </Link>
+                  <Link
+                    href="/history"
+                    className="block px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 font-medium"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    My History
                   </Link>
                   {hasActiveLeagues && (
                     <Link 
