@@ -1,5 +1,5 @@
 -- CreateTable
-CREATE TABLE `leaguecommissioner` (
+CREATE TABLE `LeagueCommissioner` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `leagueId` INTEGER NOT NULL,
     `userId` INTEGER NOT NULL,
@@ -13,8 +13,7 @@ CREATE TABLE `leaguecommissioner` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- AddForeignKey
-ALTER TABLE `leaguecommissioner` ADD CONSTRAINT `LeagueCommissioner_leagueId_fkey` FOREIGN KEY (`leagueId`) REFERENCES `league`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `LeagueCommissioner` ADD CONSTRAINT `LeagueCommissioner_leagueId_fkey` FOREIGN KEY (`leagueId`) REFERENCES `League`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `leaguecommissioner` ADD CONSTRAINT `LeagueCommissioner_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `user`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
+ALTER TABLE `LeagueCommissioner` ADD CONSTRAINT `LeagueCommissioner_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;

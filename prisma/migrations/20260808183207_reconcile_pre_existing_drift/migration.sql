@@ -1,18 +1,18 @@
 -- AlterTable
-ALTER TABLE `game` ADD COLUMN `active` BOOLEAN NOT NULL DEFAULT false,
+ALTER TABLE `Game` ADD COLUMN `active` BOOLEAN NOT NULL DEFAULT false,
     ADD COLUMN `providerGameId` INTEGER NULL,
     MODIFY `venue` varchar(191) NULL;
 
 -- AlterTable
-ALTER TABLE `team` ADD COLUMN `rank` INTEGER NULL;
+ALTER TABLE `Team` ADD COLUMN `rank` INTEGER NULL;
 
 -- AlterTable
-ALTER TABLE `user` ADD COLUMN `favTeamId` VARCHAR(191) NULL,
+ALTER TABLE `User` ADD COLUMN `favTeamId` VARCHAR(191) NULL,
     MODIFY `firstName` varchar(191) NULL,
     MODIFY `lastName` varchar(191) NULL;
 
 -- CreateTable
-CREATE TABLE `emailreminder` (
+CREATE TABLE `EmailReminder` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `userId` VARCHAR(191) NOT NULL,
     `email` VARCHAR(191) NOT NULL,
@@ -26,7 +26,7 @@ CREATE TABLE `emailreminder` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `wager` (
+CREATE TABLE `Wager` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `userId` INTEGER NOT NULL,
     `gameId` INTEGER NOT NULL,
@@ -46,20 +46,19 @@ CREATE TABLE `wager` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateIndex
-CREATE INDEX `Game_providerGameId_idx` ON `game`(`providerGameId` ASC);
+CREATE INDEX `Game_providerGameId_idx` ON `Game`(`providerGameId` ASC);
 
 -- CreateIndex
-CREATE INDEX `User_favTeamId_idx` ON `user`(`favTeamId` ASC);
+CREATE INDEX `User_favTeamId_idx` ON `User`(`favTeamId` ASC);
 
 -- AddForeignKey
-ALTER TABLE `user` ADD CONSTRAINT `User_favTeamId_fkey` FOREIGN KEY (`favTeamId`) REFERENCES `team`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `User` ADD CONSTRAINT `User_favTeamId_fkey` FOREIGN KEY (`favTeamId`) REFERENCES `Team`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `wager` ADD CONSTRAINT `Wager_gameId_fkey` FOREIGN KEY (`gameId`) REFERENCES `game`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `Wager` ADD CONSTRAINT `Wager_gameId_fkey` FOREIGN KEY (`gameId`) REFERENCES `Game`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `wager` ADD CONSTRAINT `Wager_leagueId_fkey` FOREIGN KEY (`leagueId`) REFERENCES `league`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `Wager` ADD CONSTRAINT `Wager_leagueId_fkey` FOREIGN KEY (`leagueId`) REFERENCES `League`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `wager` ADD CONSTRAINT `Wager_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `user`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
+ALTER TABLE `Wager` ADD CONSTRAINT `Wager_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
