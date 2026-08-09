@@ -11,27 +11,38 @@ import {
   EnvelopeIcon,
 } from '@heroicons/react/24/outline';
 
-export default function AdminNav() {
+interface AdminNavProps {
+  isAdmin: boolean;
+}
+
+export default function AdminNav({ isAdmin }: AdminNavProps) {
   const pathname = usePathname();
 
   const isActive = (path: string) => {
     return pathname === path;
   };
 
-  const navigationItems = [
-    { href: '/admin', label: 'Dashboard', icon: HomeIcon },
-    { href: '/admin/users', label: 'Users', icon: UsersIcon },
-    { href: '/admin/teams', label: 'Teams', icon: UsersIcon },
-    { href: '/admin/seasons', label: 'Seasons', icon: CalendarIcon },
-    { href: '/admin/weeks', label: 'Weeks', icon: CalendarIcon },
-    { href: '/admin/games', label: 'Games', icon: TrophyIcon },
-    { href: '/admin/leagues', label: 'Leagues', icon: TrophyIcon },
-    { href: '/admin/champions', label: 'Champions', icon: TrophyIcon },
-    { href: '/admin/participations', label: 'Participations', icon: UsersIcon },
-    { href: '/admin/wagers', label: 'Wagers', icon: CurrencyDollarIcon },
-    { href: '/admin/weekly-processing', label: 'Weekly Processing', icon: CogIcon },
-    { href: '/admin/send-email', label: 'Send Email', icon: EnvelopeIcon },
-  ];
+  // Commissioners (non-admins) only get access to the Leagues page
+  const navigationItems = isAdmin
+    ? [
+        { href: '/admin', label: 'Dashboard', icon: HomeIcon },
+        { href: '/admin/users', label: 'Users', icon: UsersIcon },
+        { href: '/admin/teams', label: 'Teams', icon: UsersIcon },
+        { href: '/admin/seasons', label: 'Seasons', icon: CalendarIcon },
+        { href: '/admin/weeks', label: 'Weeks', icon: CalendarIcon },
+        { href: '/admin/games', label: 'Games', icon: TrophyIcon },
+        { href: '/admin/leagues', label: 'Leagues', icon: TrophyIcon },
+        { href: '/admin/champions', label: 'Champions', icon: TrophyIcon },
+        { href: '/admin/commissioners', label: 'Commissioners', icon: UsersIcon },
+        { href: '/admin/participations', label: 'Participations', icon: UsersIcon },
+        { href: '/admin/wagers', label: 'Wagers', icon: CurrencyDollarIcon },
+        { href: '/admin/weekly-processing', label: 'Weekly Processing', icon: CogIcon },
+        { href: '/admin/send-email', label: 'Send Email', icon: EnvelopeIcon },
+      ]
+    : [
+        { href: '/admin/leagues', label: 'Leagues', icon: TrophyIcon },
+        { href: '/admin/participations', label: 'Participations', icon: UsersIcon },
+      ];
 
   return (
     <nav className="bg-gray-800 text-white w-64 min-h-screen p-4">

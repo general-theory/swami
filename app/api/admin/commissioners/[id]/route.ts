@@ -1,6 +1,6 @@
 import { auth } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
-import { prisma } from '../../../../lib/db/prisma';
+import { prisma } from '../../../../../lib/db/prisma';
 
 export async function PUT(
   request: Request,
@@ -16,43 +16,26 @@ export async function PUT(
       where: { clerkId: userId },
     });
 
-    if (!currentUser) {
+    if (!currentUser?.admin) {
       return new NextResponse('Forbidden', { status: 403 });
     }
 
-    const { id } = await params;
-    const leagueId = parseInt(id);
-
-    // Admins can edit any league; commissioners can only edit leagues they're assigned to
-    if (!currentUser.admin) {
-      const commissionerRecord = await prisma.leagueCommissioner.findUnique({
-        where: { leagueId_userId: { leagueId, userId: currentUser.id } },
-      });
-
-      if (!commissionerRecord) {
-        return new NextResponse('Forbidden', { status: 403 });
-      }
-    }
-
     const data = await request.json();
-    const { name, description, active } = data;
+    const { leagueId, userId: commissionerUserId } = data;
+    const { id } = await params;
 
-    const updatedLeague = await prisma.league.update({
-      where: { id: leagueId },
+    const updatedCommissioner = await prisma.leagueCommissioner.update({
+      where: { id: parseInt(id) },
       data: {
-        name,
-        description,
-        active,
+        leagueId: Number(leagueId),
+        userId: Number(commissionerUserId),
       },
     });
 
-    return NextResponse.json(updatedLeague);
+    return NextResponse.json(updatedCommissioner);
   } catch (error) {
-    console.error('Error updating league:', error);
-    return NextResponse.json(
-      { error: 'Error updating league' },
-      { status: 500 }
-    );
+    console.error('Error updating commissioner:', error);
+    return NextResponse.json({ error: 'Error updating commissioner' }, { status: 500 });
   }
 }
 
@@ -66,7 +49,6 @@ export async function DELETE(
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    // Check if the current user is an admin
     const currentUser = await prisma.user.findUnique({
       where: { clerkId: userId },
     });
@@ -77,16 +59,13 @@ export async function DELETE(
 
     const { id } = await params;
 
-    await prisma.league.delete({
+    await prisma.leagueCommissioner.delete({
       where: { id: parseInt(id) },
     });
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error('Error deleting league:', error);
-    return NextResponse.json(
-      { error: 'Error deleting league' },
-      { status: 500 }
-    );
+    console.error('Error deleting commissioner:', error);
+    return NextResponse.json({ error: 'Error deleting commissioner' }, { status: 500 });
   }
-} 
+}

@@ -19,26 +19,31 @@ export default function LeaguesAdmin() {
   const [selectedLeague, setSelectedLeague] = useState<League | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    const checkAdminAndFetchLeagues = async () => {
+    const checkAccessAndFetchLeagues = async () => {
       try {
         const response = await fetch('/api/user');
         const userData = await response.json();
-        
-        if (!userData?.admin) {
+
+        const admin = !!userData?.admin;
+        const isCommissioner = Array.isArray(userData?.commissionerLeagueIds) && userData.commissionerLeagueIds.length > 0;
+
+        if (!admin && !isCommissioner) {
           router.push('/');
           return;
         }
 
+        setIsAdmin(admin);
         fetchLeagues();
       } catch (error) {
-        console.error('Error checking admin status:', error);
+        console.error('Error checking access:', error);
         router.push('/');
       }
     };
 
-    checkAdminAndFetchLeagues();
+    checkAccessAndFetchLeagues();
   }, [router]);
 
   const fetchLeagues = async () => {
@@ -128,19 +133,21 @@ export default function LeaguesAdmin() {
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold">Manage Leagues</h1>
-      <div className="flex justify-between items-center mb-6">
-        <button
-          onClick={handleCreate}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          Create League
-        </button>
-      </div>
+      {isAdmin && (
+        <div className="flex justify-between items-center mb-6">
+          <button
+            onClick={handleCreate}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Create League
+          </button>
+        </div>
+      )}
       <DataTable
         columns={columns}
         data={leagues}
         onEdit={handleEdit}
-        onDelete={handleDelete}
+        onDelete={isAdmin ? handleDelete : undefined}
       />
       {selectedLeague && (
         <EditLeagueModal
@@ -153,11 +160,13 @@ export default function LeaguesAdmin() {
           onSave={handleSave}
         />
       )}
-      <CreateLeagueModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onSave={handleCreateSave}
-      />
+      {isAdmin && (
+        <CreateLeagueModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onSave={handleCreateSave}
+        />
+      )}
     </div>
   );
 } 

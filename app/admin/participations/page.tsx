@@ -35,26 +35,31 @@ export default function ParticipationsAdmin() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [participationToDelete, setParticipationToDelete] = useState<Participation | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    const checkAdminAndFetchParticipations = async () => {
+    const checkAccessAndFetchParticipations = async () => {
       try {
         const response = await fetch('/api/user');
         const userData = await response.json();
-        
-        if (!userData?.admin) {
+
+        const admin = !!userData?.admin;
+        const isCommissioner = Array.isArray(userData?.commissionerLeagueIds) && userData.commissionerLeagueIds.length > 0;
+
+        if (!admin && !isCommissioner) {
           router.push('/');
           return;
         }
 
+        setIsAdmin(admin);
         fetchParticipations();
       } catch (error) {
-        console.error('Error checking admin status:', error);
+        console.error('Error checking access:', error);
         router.push('/');
       }
     };
 
-    checkAdminAndFetchParticipations();
+    checkAccessAndFetchParticipations();
   }, [router]);
 
   const fetchParticipations = async () => {
@@ -155,19 +160,21 @@ export default function ParticipationsAdmin() {
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold">Manage Participations</h1>
-      <div className="flex justify-between items-center mb-6">
-        <button
-          onClick={handleCreate}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          Create Participation
-        </button>
-      </div>
+      {isAdmin && (
+        <div className="flex justify-between items-center mb-6">
+          <button
+            onClick={handleCreate}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Create Participation
+          </button>
+        </div>
+      )}
       <DataTable
         columns={columns}
         data={participations}
         onEdit={handleEdit}
-        onDelete={handleDelete}
+        onDelete={isAdmin ? handleDelete : undefined}
       />
       {selectedParticipation && (
         <EditParticipationModal
@@ -180,14 +187,16 @@ export default function ParticipationsAdmin() {
           onSave={handleSave}
         />
       )}
-      <CreateParticipationModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onSave={handleCreateSave}
-      />
+      {isAdmin && (
+        <CreateParticipationModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onSave={handleCreateSave}
+        />
+      )}
 
       {/* Delete Confirmation Modal */}
-      {isDeleteModalOpen && participationToDelete && (
+      {isAdmin && isDeleteModalOpen && participationToDelete && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-gray-800 p-6 rounded-lg w-full max-w-md">
             <h3 className="text-lg font-medium text-white mb-4">Delete Participation</h3>

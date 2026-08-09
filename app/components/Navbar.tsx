@@ -9,7 +9,7 @@ import { Button } from "./ui/button";
 export default function Navbar() {
   const { isSignedIn, isLoaded } = useAuth();
   const [hasActiveLeagues, setHasActiveLeagues] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [hasAdminAccess, setHasAdminAccess] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const checkUserStatus = useCallback(async () => {
@@ -23,11 +23,12 @@ export default function Navbar() {
         setHasActiveLeagues(leagues.length > 0);
       }
 
-      // Check admin status
+      // Check admin/commissioner status
       const userResponse = await fetch('/api/user');
       if (userResponse.ok) {
         const user = await userResponse.json();
-        setIsAdmin(user.admin || false);
+        const isCommissioner = Array.isArray(user.commissionerLeagueIds) && user.commissionerLeagueIds.length > 0;
+        setHasAdminAccess(!!user.admin || isCommissioner);
       }
     } catch (error) {
       console.error('Error checking user status:', error);
@@ -122,7 +123,7 @@ export default function Navbar() {
                     Wager
                   </Link>
                 )}
-                {isAdmin && (
+                {hasAdminAccess && (
                   <Link
                     href="/admin"
                     className="text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 dark:hover:text-yellow-300 transition-colors duration-200 font-medium"
@@ -233,9 +234,9 @@ export default function Navbar() {
                       Wager
                     </Link>
                   )}
-                  {isAdmin && (
-                    <Link 
-                      href="/admin" 
+                  {hasAdminAccess && (
+                    <Link
+                      href="/admin"
                       className="block px-3 py-2 text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 dark:hover:text-yellow-300 transition-colors duration-200 font-medium"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >

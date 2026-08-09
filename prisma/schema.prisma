@@ -9,20 +9,21 @@ datasource db {
 }
 
 model User {
-  id             Int                 @id @default(autoincrement())
-  clerkId        String              @unique
-  email          String              @unique
+  id             Int                  @id @default(autoincrement())
+  clerkId        String               @unique
+  email          String               @unique
   firstName      String?
   lastName       String?
   nickName       String?
-  admin          Boolean             @default(false)
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
+  admin          Boolean              @default(false)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
   favTeamId      String?
-  favoriteTeam   Team?               @relation("UserFavoriteTeam", fields: [favTeamId], references: [id])
+  favoriteTeam   Team?                @relation("UserFavoriteTeam", fields: [favTeamId], references: [id])
   participations UserParticipation[]
   wagers         Wager[]
   championships  Champion[]
+  commissioners  LeagueCommissioner[]
 
   @@index([favTeamId])
 }
@@ -41,15 +42,16 @@ model Season {
 }
 
 model League {
-  id             Int                 @id @default(autoincrement())
-  name           String              @unique
-  description    String              @db.Text
-  active         Boolean             @default(true)
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
+  id             Int                  @id @default(autoincrement())
+  name           String               @unique
+  description    String               @db.Text
+  active         Boolean              @default(true)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
   participations UserParticipation[]
   wagers         Wager[]
   champions      Champion[]
+  commissioners  LeagueCommissioner[]
 }
 
 model UserParticipation {
@@ -196,4 +198,18 @@ model Champion {
   @@index([leagueId])
   @@index([userId])
   @@index([seasonId])
+}
+
+model LeagueCommissioner {
+  id        Int      @id @default(autoincrement())
+  leagueId  Int
+  userId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  league    League   @relation(fields: [leagueId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([leagueId, userId])
+  @@index([leagueId])
+  @@index([userId])
 }

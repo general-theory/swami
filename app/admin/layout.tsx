@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import AdminNav from '../components/admin/AdminNav';
 
 export default function AdminLayout({
@@ -9,37 +9,49 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [hasAccess, setHasAccess] = useState(false);
 
   useEffect(() => {
-    const checkAdminStatus = async () => {
+    const checkAccess = async () => {
       try {
         const response = await fetch('/api/user');
         const userData = await response.json();
-        
-        if (!userData?.admin) {
+
+        const admin = !!userData?.admin;
+        const isCommissioner = Array.isArray(userData?.commissionerLeagueIds) && userData.commissionerLeagueIds.length > 0;
+
+        if (!admin && !isCommissioner) {
           router.push('/');
           return;
         }
-        
-        setIsAdmin(true);
+
+        // Commissioners only have access to the Leagues page; send them there directly
+        if (!admin && isCommissioner && pathname === '/admin') {
+          router.replace('/admin/leagues');
+          return;
+        }
+
+        setIsAdmin(admin);
+        setHasAccess(true);
       } catch (error) {
         console.error('Error checking admin status:', error);
         router.push('/');
       }
     };
 
-    checkAdminStatus();
-  }, [router]);
+    checkAccess();
+  }, [router, pathname]);
 
-  if (!isAdmin) {
+  if (!hasAccess) {
     return null;
   }
 
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
-      <AdminNav />
+      <AdminNav isAdmin={isAdmin} />
 
       {/* Main content */}
       <div className="flex-1 overflow-auto">
@@ -47,4 +59,4 @@ export default function AdminLayout({
       </div>
     </div>
   );
-} 
+}

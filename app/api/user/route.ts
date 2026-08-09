@@ -1,6 +1,7 @@
 import { auth } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 import { createUser, getUserByClerkId } from '../../lib/db/user';
+import { getCommissionerLeagueIds } from '../../lib/db/commissioners';
 import { prisma } from '../../lib/db/prisma';
 
 export async function GET() {
@@ -16,7 +17,9 @@ export async function GET() {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    return NextResponse.json(user);
+    const commissionerLeagueIds = await getCommissionerLeagueIds(user.id);
+
+    return NextResponse.json({ ...user, commissionerLeagueIds });
   } catch (error) {
     console.error('Error fetching user:', error);
     return NextResponse.json({ 

@@ -1,6 +1,7 @@
 import { auth } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../lib/db/prisma';
+import { getCommissionerLeagueIds } from '../../../../lib/db/commissioners';
 
 export async function PUT(
   request: Request,
@@ -12,30 +13,50 @@ export async function PUT(
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    // Check if the current user is an admin
     const currentUser = await prisma.user.findUnique({
       where: { clerkId: userId },
     });
 
-    if (!currentUser?.admin) {
+    if (!currentUser) {
       return new NextResponse('Forbidden', { status: 403 });
     }
 
     const data = await request.json();
     const { leagueId, seasonId, userId: participantId, active, balance } = data;
     const { id } = await params;
+    const participationId = parseInt(id);
+
+    // Admins can edit any participation; commissioners can only edit participations
+    // in leagues they're assigned to, and can't move one into a league they don't control
+    if (!currentUser.admin) {
+      const existingParticipation = await prisma.userParticipation.findUnique({
+        where: { id: participationId },
+      });
+
+      if (!existingParticipation) {
+        return new NextResponse('Not Found', { status: 404 });
+      }
+
+      const commissionerLeagueIds = await getCommissionerLeagueIds(currentUser.id);
+      if (
+        !commissionerLeagueIds.includes(existingParticipation.leagueId) ||
+        !commissionerLeagueIds.includes(Number(leagueId))
+      ) {
+        return new NextResponse('Forbidden', { status: 403 });
+      }
+    }
 
     // Check if the new combination would create a duplicate
-    const existingParticipation = await prisma.userParticipation.findFirst({
+    const duplicateParticipation = await prisma.userParticipation.findFirst({
       where: {
         leagueId,
         seasonId,
         userId: participantId,
-        id: { not: parseInt(id) },
+        id: { not: participationId },
       },
     });
 
-    if (existingParticipation) {
+    if (duplicateParticipation) {
       return NextResponse.json(
         { error: 'Participation already exists' },
         { status: 400 }
@@ -44,7 +65,7 @@ export async function PUT(
 
     const updatedParticipation = await prisma.userParticipation.update({
       where: {
-        id: parseInt(id),
+        id: participationId,
       },
       data: {
         leagueId,
