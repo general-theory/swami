@@ -1,5 +1,5 @@
 -- AlterTable
-ALTER TABLE `userparticipation` ADD COLUMN `isLock` BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE `UserParticipation` ADD COLUMN `isLock` BOOLEAN NOT NULL DEFAULT false;
 
 -- CreateTable
 CREATE TABLE `LockPick` (
