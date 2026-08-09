@@ -35,6 +35,7 @@ export default function AdminNav({ isAdmin }: AdminNavProps) {
         { href: '/admin/champions', label: 'Champions', icon: TrophyIcon },
         { href: '/admin/commissioners', label: 'Commissioners', icon: UsersIcon },
         { href: '/admin/participations', label: 'Participations', icon: UsersIcon },
+        { href: '/admin/lock', label: 'Lock of the Week', icon: TrophyIcon },
         { href: '/admin/wagers', label: 'Wagers', icon: CurrencyDollarIcon },
         { href: '/admin/weekly-processing', label: 'Weekly Processing', icon: CogIcon },
         { href: '/admin/send-email', label: 'Send Email', icon: EnvelopeIcon },
@@ -42,6 +43,7 @@ export default function AdminNav({ isAdmin }: AdminNavProps) {
     : [
         { href: '/admin/leagues', label: 'Leagues', icon: TrophyIcon },
         { href: '/admin/participations', label: 'Participations', icon: UsersIcon },
+        { href: '/admin/lock', label: 'Lock of the Week', icon: TrophyIcon },
       ];
 
   return (

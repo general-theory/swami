@@ -88,6 +88,7 @@ export async function GET() {
     const participations = await prisma.userParticipation.findMany({
       where: {
         seasonId: activeSeason.id,
+        isLock: false,
       },
       include: {
         user: {

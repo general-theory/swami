@@ -24,6 +24,7 @@ model User {
   wagers         Wager[]
   championships  Champion[]
   commissioners  LeagueCommissioner[]
+  lockPicksSet   LockPick[]
 
   @@index([favTeamId])
 }
@@ -52,6 +53,7 @@ model League {
   wagers         Wager[]
   champions      Champion[]
   commissioners  LeagueCommissioner[]
+  lockPicks      LockPick[]
 }
 
 model UserParticipation {
@@ -63,6 +65,7 @@ model UserParticipation {
   balance   Float    @default(1000)
   minBet    Float    @default(0)
   maxBet    Float    @default(0)
+  isLock    Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   league    League   @relation(fields: [leagueId], references: [id])
@@ -112,6 +115,7 @@ model Week {
   updatedAt     DateTime @updatedAt
   games         Game[]
   season        Season   @relation(fields: [seasonId], references: [id])
+  lockPicks     LockPick[]
 
   @@index([seasonId])
 }
@@ -141,6 +145,7 @@ model Game {
   season         Season   @relation(fields: [seasonId], references: [id])
   week           Week     @relation(fields: [weekId], references: [id])
   wagers         Wager[]
+  lockPicks      LockPick[]
 
   @@index([seasonId])
   @@index([weekId])
@@ -164,6 +169,7 @@ model Wager {
   game          Game     @relation(fields: [gameId], references: [id])
   league        League   @relation(fields: [leagueId], references: [id])
   user          User     @relation(fields: [userId], references: [id])
+  lockPick      LockPick?
 
   @@unique([userId, gameId, leagueId])
   @@index([userId])
@@ -212,4 +218,29 @@ model LeagueCommissioner {
   @@unique([leagueId, userId])
   @@index([leagueId])
   @@index([userId])
+}
+
+// A commissioner's weekly "lock of the week" selection for their league's
+// automated Lock entrant (a UserParticipation with isLock = true). Generates
+// (and keeps in sync with) a real Wager placed on the Lock's behalf.
+model LockPick {
+  id          Int      @id @default(autoincrement())
+  leagueId    Int
+  weekId      Int
+  gameId      Int
+  pick        String
+  wagerId     Int?     @unique
+  setByUserId Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  league      League   @relation(fields: [leagueId], references: [id])
+  week        Week     @relation(fields: [weekId], references: [id])
+  game        Game     @relation(fields: [gameId], references: [id])
+  wager       Wager?   @relation(fields: [wagerId], references: [id])
+  setBy       User     @relation(fields: [setByUserId], references: [id])
+
+  @@unique([leagueId, weekId])
+  @@index([leagueId])
+  @@index([weekId])
+  @@index([gameId])
 }
