@@ -129,9 +129,9 @@ export default function Results() {
   // Check if there are no completed weeks
   if (!loadingWeeks && weeks.length === 0) {
     return (
-      <div className="container mx-auto p-8">
+      <div className="container mx-auto p-4 sm:p-8">
         <div className="flex items-center gap-4 mb-8">
-          <h1 className="text-4xl font-bold whitespace-nowrap">Week Results</h1>
+          <h1 className="text-2xl sm:text-4xl font-bold">Week Results</h1>
         </div>
         <div className="text-center py-12">
           <div className="card bg-base-100 shadow-xl max-w-md mx-auto">
@@ -148,15 +148,15 @@ export default function Results() {
   }
 
   return (
-    <div className="container mx-auto p-8">
-      <div className="flex items-center gap-4 mb-8">
-        <h1 className="text-4xl font-bold whitespace-nowrap">Week Results</h1>
+    <div className="container mx-auto p-4 sm:p-8">
+      <div className="flex flex-col gap-4 mb-8 sm:flex-row sm:items-center">
+        <h1 className="text-2xl sm:text-4xl font-bold">Week Results</h1>
         <div className="flex-1" />
         <div className="flex gap-4">
-          <div>
+          <div className="flex-1 sm:flex-none">
             <label className="block text-sm font-medium mb-1">League</label>
             <select
-              className="select select-primary select-sm min-w-[180px]"
+              className="select select-primary select-sm w-full sm:min-w-[180px]"
               value={selectedLeagueId ?? ''}
               onChange={e => setSelectedLeagueId(Number(e.target.value))}
               disabled={loadingLeagues || leagues.length === 0}
@@ -166,10 +166,10 @@ export default function Results() {
               ))}
             </select>
           </div>
-          <div>
+          <div className="flex-1 sm:flex-none">
             <label className="block text-sm font-medium mb-1">Week</label>
             <select
-              className="select select-primary select-sm min-w-[120px]"
+              className="select select-primary select-sm w-full sm:min-w-[120px]"
               value={selectedWeekId ?? ''}
               onChange={e => setSelectedWeekId(Number(e.target.value))}
               disabled={loadingWeeks || weeks.length === 0}
@@ -181,7 +181,7 @@ export default function Results() {
           </div>
         </div>
       </div>
-      
+
       <ResultsView
         leagueId={selectedLeagueId}
         weekId={selectedWeekId}
@@ -410,6 +410,7 @@ function ResultsView({ leagueId, weekId, weekNumber }: { leagueId: number | null
 
   const allGamesCompleted = games.length > 0 && games.every(g => g.completed);
   const wageredSummaries = userSummaries.filter(u => u.totalWagered > 0);
+  const rankedPlayers = [...wageredSummaries].sort((a, b) => b.totalWagered - a.totalWagered);
 
   // Pre-game stats
   const biggestSingleBet = wagers.reduce<{ user: User; game: Game; wager: Wager } | null>((max, wager) => {
@@ -495,7 +496,7 @@ function ResultsView({ leagueId, weekId, weekNumber }: { leagueId: number | null
       />
 
       {/* League Summary */}
-      <div className="stats shadow">
+      <div className="stats stats-vertical sm:stats-horizontal shadow w-full sm:w-auto">
         <div className="stat">
           <div className="stat-title">Total Wagered</div>
           <div className="stat-value text-primary">♠{totalLeagueWagered.toLocaleString()}</div>
@@ -541,7 +542,9 @@ function ResultsView({ leagueId, weekId, weekNumber }: { leagueId: number | null
       <div className="card bg-base-100 shadow-xl">
         <div className="card-body">
           <h2 className="card-title text-2xl mb-4">Player Results</h2>
-          <div className="overflow-x-auto">
+
+          {/* Desktop / tablet table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="table table-zebra w-full">
               <thead>
                 <tr>
@@ -554,35 +557,64 @@ function ResultsView({ leagueId, weekId, weekNumber }: { leagueId: number | null
                 </tr>
               </thead>
               <tbody>
-                {userSummaries
-                  .filter(u => u.totalWagered > 0)
-                  .sort((a, b) => b.totalWagered - a.totalWagered)
-                  .map((summary) => (
-                    <tr key={summary.user.id}>
-                      <td className="font-medium">
-                        {summary.user.nickName || `${summary.user.firstName} ${summary.user.lastName}`}
-                      </td>
-                      <td className="text-center">{summary.gamesWagered}</td>
-                      <td className="text-center font-semibold">♠{summary.totalWagered.toLocaleString()}</td>
-                      <td className="text-center">
-                        ♠{summary.gamesWagered > 0 ? Math.round(summary.totalWagered / summary.gamesWagered) : 0}
-                      </td>
-                      <td className="text-center font-medium">
-                        <span className={`badge ${summary.wins > summary.losses ? 'badge-success' : 
-                          summary.losses > summary.wins ? 'badge-error' : 'badge-neutral'}`}>
-                          {summary.wins}-{summary.losses}
-                        </span>
-                      </td>
-                      <td className={`text-center font-semibold ${
-                        summary.balanceImpact > 0 ? 'text-green-600' : 
-                        summary.balanceImpact < 0 ? 'text-red-600' : 'text-gray-600'
-                      }`}>
-                        ♠{summary.balanceImpact.toLocaleString()}
-                      </td>
-                    </tr>
-                  ))}
+                {rankedPlayers.map((summary) => (
+                  <tr key={summary.user.id}>
+                    <td className="font-medium">
+                      {summary.user.nickName || `${summary.user.firstName} ${summary.user.lastName}`}
+                    </td>
+                    <td className="text-center">{summary.gamesWagered}</td>
+                    <td className="text-center font-semibold">♠{summary.totalWagered.toLocaleString()}</td>
+                    <td className="text-center">
+                      ♠{summary.gamesWagered > 0 ? Math.round(summary.totalWagered / summary.gamesWagered) : 0}
+                    </td>
+                    <td className="text-center font-medium">
+                      <span className={`badge ${summary.wins > summary.losses ? 'badge-success' :
+                        summary.losses > summary.wins ? 'badge-error' : 'badge-neutral'}`}>
+                        {summary.wins}-{summary.losses}
+                      </span>
+                    </td>
+                    <td className={`text-center font-semibold ${
+                      summary.balanceImpact > 0 ? 'text-green-600' :
+                      summary.balanceImpact < 0 ? 'text-red-600' : 'text-gray-600'
+                    }`}>
+                      ♠{summary.balanceImpact.toLocaleString()}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile card list */}
+          <div className="md:hidden space-y-2">
+            {rankedPlayers.map((summary) => (
+              <div key={summary.user.id} className="rounded-lg border border-base-300 p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-medium truncate">
+                    {summary.user.nickName || `${summary.user.firstName} ${summary.user.lastName}`}
+                  </span>
+                  <span className={`badge shrink-0 ${summary.wins > summary.losses ? 'badge-success' :
+                    summary.losses > summary.wins ? 'badge-error' : 'badge-neutral'}`}>
+                    {summary.wins}-{summary.losses}
+                  </span>
+                </div>
+                <div className="mt-2 flex items-center justify-between text-sm">
+                  <span className="text-gray-500">{summary.gamesWagered} games wagered</span>
+                  <span className={`font-semibold ${
+                    summary.balanceImpact > 0 ? 'text-green-600' :
+                    summary.balanceImpact < 0 ? 'text-red-600' : 'text-gray-600'
+                  }`}>
+                    ♠{summary.balanceImpact.toLocaleString()}
+                  </span>
+                </div>
+                <div className="mt-1 flex items-center justify-between text-xs text-gray-500">
+                  <span>Total: ♠{summary.totalWagered.toLocaleString()}</span>
+                  <span>
+                    Avg: ♠{summary.gamesWagered > 0 ? Math.round(summary.totalWagered / summary.gamesWagered) : 0}
+                  </span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -617,28 +649,28 @@ function GameCard({ summary }: { summary: GameSummary }) {
     <div className="card bg-base-200 shadow-sm">
       <div className="card-body p-4">
         <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
             {game.awayTeam.logo && (
               <Image
                 src={game.awayTeam.logo}
                 alt={`${game.awayTeam.name} logo`}
                 width={24}
                 height={24}
-                className="rounded-full"
+                className="rounded-full shrink-0"
               />
             )}
-            <span className="font-medium text-sm">{game.awayTeam.name}</span>
+            <span className="font-medium text-sm truncate">{game.awayTeam.name}</span>
           </div>
-          <span className="text-xs text-gray-500">@</span>
-          <div className="flex items-center gap-2">
-            <span className="font-medium text-sm">{game.homeTeam.name}</span>
+          <span className="text-xs text-gray-500 shrink-0">@</span>
+          <div className="flex items-center gap-2 min-w-0 flex-1 justify-end">
+            <span className="font-medium text-sm truncate">{game.homeTeam.name}</span>
             {game.homeTeam.logo && (
               <Image
                 src={game.homeTeam.logo}
                 alt={`${game.homeTeam.name} logo`}
                 width={24}
                 height={24}
-                className="rounded-full"
+                className="rounded-full shrink-0"
               />
             )}
           </div>
@@ -726,20 +758,20 @@ function UserWagersCard({ userSummary, games }: { userSummary: UserSummary; game
             const result = getWagerResult(wager, game);
 
             return (
-              <div key={wager.gameId} className="flex items-center justify-between p-2 bg-base-100 rounded">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">{pickedTeam.name}</span>
-                  <span className="text-xs text-gray-500">vs</span>
-                  <span className="text-sm">{otherTeam.name}</span>
+              <div key={wager.gameId} className="flex items-center justify-between gap-2 p-2 bg-base-100 rounded">
+                <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                  <span className="font-medium truncate">{pickedTeam.name}</span>
+                  <span className="text-xs text-gray-500 shrink-0">vs</span>
+                  <span className="text-sm truncate">{otherTeam.name}</span>
                   {result && (
-                    <span className={`badge badge-sm ${
+                    <span className={`badge badge-sm shrink-0 ${
                       result === 'win' ? 'badge-success' : 'badge-error'
                     }`}>
                       {result === 'win' ? 'W' : 'L'}
                     </span>
                   )}
                 </div>
-                <div className="text-right">
+                <div className="text-right shrink-0">
                   <div className="font-semibold">♠{wager.amount.toLocaleString()}</div>
                   <div className="text-xs text-gray-500">
                     {game.awayPoints !== null && game.homePoints !== null
@@ -799,7 +831,7 @@ function WeeklyRecapModal({
 }) {
   return (
     <Dialog open={open} onOpenChange={v => !v && onClose()}>
-      <DialogContent className="max-w-2xl w-full max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogTitle className="text-2xl">🏆 Week {weekNumber ?? ''} Recap</DialogTitle>
 
         <div className="space-y-6 mt-2">

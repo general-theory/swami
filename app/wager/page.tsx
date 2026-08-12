@@ -123,7 +123,7 @@ function WagerModal({ open, onClose, game, leagueId, onWagerSuccess, existingWag
 
   return (
     <Dialog open={open} onOpenChange={v => !v && onClose()}>
-      <DialogContent className="max-w-lg w-full">
+      <DialogContent>
         <DialogTitle className="text-lg sm:text-xl">Place Wager</DialogTitle>
         <div className="mb-4 space-y-1 text-sm sm:text-base">
           <div className="font-semibold">
@@ -142,16 +142,16 @@ function WagerModal({ open, onClose, game, leagueId, onWagerSuccess, existingWag
         </div>
         <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-            <button type="button" className={`btn flex-1 text-xs sm:text-sm py-2 sm:py-3 ${pick==='home'?'btn-primary':'btn-outline'}`} onClick={()=>setPick('home')}>
+            <button type="button" className={`btn flex-1 h-auto whitespace-normal text-center leading-tight text-xs sm:text-sm py-2 sm:py-3 ${pick==='home'?'btn-primary':'btn-outline'}`} onClick={()=>setPick('home')}>
               {game.homeTeam.rank && <span className="font-bold">#{game.homeTeam.rank}</span>} {game.homeTeam.name}
             </button>
-            <button type="button" className={`btn flex-1 text-xs sm:text-sm py-2 sm:py-3 ${pick==='visit'?'btn-primary':'btn-outline'}`} onClick={()=>setPick('visit')}>
+            <button type="button" className={`btn flex-1 h-auto whitespace-normal text-center leading-tight text-xs sm:text-sm py-2 sm:py-3 ${pick==='visit'?'btn-primary':'btn-outline'}`} onClick={()=>setPick('visit')}>
               {game.awayTeam.rank && <span className="font-bold">#{game.awayTeam.rank}</span>} {game.awayTeam.name}
             </button>
           </div>
           <div>
             <label className="block mb-1 text-sm sm:text-base">Amount ($)</label>
-            <input type="number" className="input input-bordered w-full text-sm sm:text-base" min={0} step={10} value={amount} onChange={e=>setAmount(e.target.value)} />
+            <input type="number" inputMode="numeric" className="input input-bordered w-full text-base" min={0} step={10} value={amount} onChange={e=>setAmount(e.target.value)} />
           </div>
           {error && <div className="text-error text-xs sm:text-sm">{error}</div>}
           <div className="flex justify-end gap-2 pt-2">
@@ -331,27 +331,57 @@ export default function Wager() {
     // Optionally show a toast
   };
 
+  const gameRows = games.map((game) => {
+    const isHomeFavored = game.spread !== null && game.spread < 0;
+    const favoredTeam = { ...(isHomeFavored ? game.homeTeam : game.awayTeam), isHome: isHomeFavored };
+    const underdogTeam = { ...(isHomeFavored ? game.awayTeam : game.homeTeam), isHome: !isHomeFavored };
+    const spread = game.spread === null ? 'NL' : Math.abs(game.spread).toString();
+    const wager = wagers.find(w => w.gameId === game.id);
+    const favoredPick: 'home' | 'visit' = isHomeFavored ? 'home' : 'visit';
+    const underdogPick: 'home' | 'visit' = isHomeFavored ? 'visit' : 'home';
+    const favoredAmount = wager && wager.pick === favoredPick ? wager.amount : 0;
+    const underdogAmount = wager && wager.pick === underdogPick ? wager.amount : 0;
+    return { game, favoredTeam, underdogTeam, spread, favoredAmount, underdogAmount };
+  });
+
+  const renderTeam = (team: Game['homeTeam'] & { isHome: boolean }) => (
+    <div className="flex items-center gap-2 min-w-0">
+      {team.isHome && <span className="text-gray-400 shrink-0">@</span>}
+      {team.rank && <span className="font-bold shrink-0">#{team.rank}</span>}
+      <span className="truncate">{team.name}</span>
+      {team.logo && (
+        <Image
+          src={team.logo}
+          alt={`${team.name} logo`}
+          width={24}
+          height={24}
+          className="rounded-full shrink-0"
+        />
+      )}
+    </div>
+  );
+
   return (
-    <div className="container mx-auto p-8">
+    <div className="container mx-auto p-4 sm:p-8">
       {!wagersAllowed && (
         <div className="mb-4 p-4 bg-error text-white text-center rounded font-bold text-lg">Wagers Locked</div>
       )}
-      
+
       {participation && isOutOfGame && (
         <div className="mb-4 p-4 bg-error text-white text-center rounded font-bold text-lg">
           You&apos;re Out of the Game! (Balance: ${participation.balance.toFixed(2)}) - You cannot place wagers.
         </div>
       )}
-      
+
       {!participation && selectedLeagueId && games.length > 0 && (
         <div className="mb-4 p-4 bg-warning text-warning-content text-center rounded font-bold text-lg">
           You are not participating in this league for the current season.
         </div>
       )}
-      
-      <div className="flex items-center gap-4 mb-6">
-        <h1 className="text-4xl font-bold whitespace-nowrap">Place Your Wagers</h1>
-        <div className="flex-1 flex justify-center gap-2">
+
+      <div className="flex flex-col gap-3 mb-6 lg:flex-row lg:items-center lg:gap-4">
+        <h1 className="text-2xl sm:text-4xl font-bold">Place Your Wagers</h1>
+        <div className="flex flex-wrap justify-center gap-2 lg:flex-1">
           <div className="bg-base-200 rounded px-3 py-1 text-sm">
             <span className="font-semibold">Balance:</span> ${participation?.balance || 0}
           </div>
@@ -361,7 +391,7 @@ export default function Wager() {
           <div className="bg-base-200 rounded px-3 py-1 text-sm">
             <span className="font-semibold">Max Bet:</span> ${maxBet}
           </div>
-          <div className={`bg-base-200 rounded px-3 py-1 text-sm ${currentBetTotal < minBet || currentBetTotal > maxBet ? 'text-error' : ''}`}> 
+          <div className={`bg-base-200 rounded px-3 py-1 text-sm ${currentBetTotal < minBet || currentBetTotal > maxBet ? 'text-error' : ''}`}>
             <span className="font-semibold">Current Bet Total:</span> ${currentBetTotal}
           </div>
         </div>
@@ -369,7 +399,7 @@ export default function Wager() {
           <label className="sr-only" htmlFor="league-select">Select League</label>
           <select
             id="league-select"
-            className="select select-primary select-sm min-w-[160px]"
+            className="select select-primary select-sm w-full lg:w-auto lg:min-w-[160px]"
             value={selectedLeagueId ?? ''}
             onChange={e => setSelectedLeagueId(Number(e.target.value))}
             disabled={loadingLeagues || leagues.length === 0}
@@ -380,7 +410,9 @@ export default function Wager() {
           </select>
         </div>
       </div>
-      <div className="overflow-x-auto">
+
+      {/* Desktop / tablet table */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full table-auto">
           <thead>
             <tr className="bg-gray-800 text-gray-300">
@@ -392,97 +424,47 @@ export default function Wager() {
             </tr>
           </thead>
           <tbody>
-            {games.map((game) => {
-              const isHomeFavored = game.spread !== null && game.spread < 0;
-              const favoredTeam = isHomeFavored ? 'home' : 'visit';
-              const underdogTeam = isHomeFavored ? 'visit' : 'home';
-              const spread = game.spread === null ? 'NL' : Math.abs(game.spread).toString();
-              const wager = wagers.find(w => w.gameId === game.id);
-              const favoredAmount = wager && wager.pick === favoredTeam ? wager.amount : 0;
-              const underdogAmount = wager && wager.pick === underdogTeam ? wager.amount : 0;
-              return (
-                <tr 
-                  key={game.id}
-                  onClick={wagersAllowed ? () => handleGameClick(game) : undefined}
-                  className={`border-b border-gray-700 ${wagersAllowed ? 'hover:bg-gray-800 cursor-pointer' : 'opacity-50 cursor-not-allowed'}`}
-                >
-                  <td className="px-4 py-2">{favoredAmount}</td>
-                  <td className="px-4 py-2">
-                    <div className="flex items-center gap-2">
-                      {isHomeFavored ? (
-                        <>
-                          <span>@</span>
-                          {game.homeTeam.rank && <span className="font-bold">#{game.homeTeam.rank}</span>}
-                          <span>{game.homeTeam.name}</span>
-                          {game.homeTeam.logo && (
-                            <Image
-                              src={game.homeTeam.logo}
-                              alt={`${game.homeTeam.name} logo`}
-                              width={24}
-                              height={24}
-                              className="rounded-full"
-                            />
-                          )}
-                        </>
-                      ) : (
-                        <>
-                          {game.awayTeam.rank && <span className="font-bold">#{game.awayTeam.rank}</span>}
-                          <span>{game.awayTeam.name}</span>
-                          {game.awayTeam.logo && (
-                            <Image
-                              src={game.awayTeam.logo}
-                              alt={`${game.awayTeam.name} logo`}
-                              width={24}
-                              height={24}
-                              className="rounded-full"
-                            />
-                          )}
-                        </>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-4 py-2">{spread}</td>
-                  <td className="px-4 py-2">
-                    <div className="flex items-center gap-2">
-                      {isHomeFavored ? (
-                        <>
-                          {game.awayTeam.rank && <span className="font-bold">#{game.awayTeam.rank}</span>}
-                          <span>{game.awayTeam.name}</span>
-                          {game.awayTeam.logo && (
-                            <Image
-                              src={game.awayTeam.logo}
-                              alt={`${game.awayTeam.name} logo`}
-                              width={24}
-                              height={24}
-                              className="rounded-full"
-                            />
-                          )}
-                        </>
-                      ) : (
-                        <>
-                          <span>@</span>
-                          {game.homeTeam.rank && <span className="font-bold">#{game.homeTeam.rank}</span>}
-                          <span>{game.homeTeam.name}</span>
-                          {game.homeTeam.logo && (
-                            <Image
-                              src={game.homeTeam.logo}
-                              alt={`${game.homeTeam.name} logo`}
-                              width={24}
-                              height={24}
-                              className="rounded-full"
-                            />
-                          )}
-                        </>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-4 py-2">{underdogAmount}</td>
-                </tr>
-              );
-            })}
+            {gameRows.map(({ game, favoredTeam, underdogTeam, spread, favoredAmount, underdogAmount }) => (
+              <tr
+                key={game.id}
+                onClick={wagersAllowed ? () => handleGameClick(game) : undefined}
+                className={`border-b border-gray-700 ${wagersAllowed ? 'hover:bg-gray-800 cursor-pointer' : 'opacity-50 cursor-not-allowed'}`}
+              >
+                <td className="px-4 py-2">{favoredAmount}</td>
+                <td className="px-4 py-2">{renderTeam(favoredTeam)}</td>
+                <td className="px-4 py-2">{spread}</td>
+                <td className="px-4 py-2">{renderTeam(underdogTeam)}</td>
+                <td className="px-4 py-2">{underdogAmount}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
+
+      {/* Mobile card list */}
+      <div className="md:hidden space-y-2">
+        {gameRows.map(({ game, favoredTeam, underdogTeam, spread, favoredAmount, underdogAmount }) => (
+          <div
+            key={game.id}
+            onClick={wagersAllowed ? () => handleGameClick(game) : undefined}
+            className={`rounded-lg border border-gray-700 p-3 ${wagersAllowed ? 'active:bg-gray-800 cursor-pointer' : 'opacity-50 cursor-not-allowed'}`}
+          >
+            <div className="flex items-center justify-between gap-2">
+              {renderTeam(favoredTeam)}
+              <span className="text-xs font-semibold text-gray-400 shrink-0">
+                {spread === 'NL' ? 'NL' : `-${spread}`}
+              </span>
+            </div>
+            <div className="mt-1">{renderTeam(underdogTeam)}</div>
+            {(favoredAmount > 0 || underdogAmount > 0) && (
+              <div className="mt-2 text-xs text-gray-400">
+                ${favoredAmount || underdogAmount} wagered on {favoredAmount > 0 ? favoredTeam.name : underdogTeam.name}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
       <WagerModal
         open={modalOpen}
         onClose={()=>{ setModalOpen(false); setEditingWager(null); }}

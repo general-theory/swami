@@ -33,9 +33,9 @@ interface StandingsTableProps {
   data: Standing[];
 }
 
+const MONEY_ACCESSORS = ['balance', 'minBet', 'maxBet'];
+
 export default function StandingsTable({ columns, data }: StandingsTableProps) {
-  console.log('StandingsTable rendered with:', { columns, dataLength: data.length });
-  
   const [sortConfig, setSortConfig] = useState<{
     key: string;
     direction: 'asc' | 'desc';
@@ -44,7 +44,7 @@ export default function StandingsTable({ columns, data }: StandingsTableProps) {
   const getNestedValue = (obj: Standing, path: string): unknown => {
     const parts = path.split('.');
     let current: unknown = obj;
-    
+
     for (const part of parts) {
       if (current && typeof current === 'object') {
         current = (current as Record<string, unknown>)[part];
@@ -52,47 +52,15 @@ export default function StandingsTable({ columns, data }: StandingsTableProps) {
         return undefined;
       }
     }
-    
+
     return current;
   };
 
-  const formatValue = (value: unknown, accessor: string, standing?: Standing): React.ReactNode => {
-    if (accessor === 'user.displayName') {
-      const displayName = String(value ?? '');
-      const favoriteTeam = standing?.user.favoriteTeam;
-      
-      return (
-        <div className="flex items-center gap-2">
-          <span>{displayName}</span>
-          {favoriteTeam && favoriteTeam.logo && (
-            <Image
-              src={favoriteTeam.logo}
-              alt={`${favoriteTeam.name} logo`}
-              width={20}
-              height={20}
-              className="rounded-full"
-            />
-          )}
-        </div>
-      );
-    }
-    
-    
-    if (typeof value === 'number') {
-      const formattedNumber = value.toLocaleString('en-US', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      });
-      
-      // Add spade symbol to monetary values
-      if (['balance', 'minBet', 'maxBet'].includes(accessor)) {
-        return `♠${formattedNumber}`;
-      }
-      
-      return formattedNumber;
-    }
-    return String(value ?? '');
-  };
+  const formatMoney = (value: number) =>
+    `♠${value.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
 
   const sortedData = [...data].sort((a, b) => {
     if (!sortConfig) return 0;
@@ -104,12 +72,10 @@ export default function StandingsTable({ columns, data }: StandingsTableProps) {
     if (aValue === null || aValue === undefined) return 1;
     if (bValue === null || bValue === undefined) return -1;
 
-    // Handle numeric values
     if (typeof aValue === 'number' && typeof bValue === 'number') {
       return sortConfig.direction === 'asc' ? aValue - bValue : bValue - aValue;
     }
 
-    // Handle string values
     const comparison = String(aValue) < String(bValue) ? -1 : 1;
     return sortConfig.direction === 'asc' ? comparison : -comparison;
   });
@@ -122,80 +88,120 @@ export default function StandingsTable({ columns, data }: StandingsTableProps) {
     setSortConfig({ key, direction });
   };
 
-  const getColumnAlignment = (accessor: string): 'left' | 'right' => {
-    // Numeric columns should be right-aligned
-    if (['balance', 'minBet', 'maxBet'].includes(accessor)) {
-      return 'right';
-    }
-    // Text columns should be left-aligned
-    return 'left';
-  };
-
-  const getColumnWidth = (accessor: string): string => {
-    switch (accessor) {
-      case 'league.name':
-        return 'w-48'; // Fixed width for league names
-      case 'user.displayName':
-        return 'w-40'; // Fixed width for user names
-      case 'balance':
-        return 'w-24'; // Fixed width for balance
-      case 'minBet':
-        return 'w-24'; // Fixed width for min bet
-      case 'maxBet':
-        return 'w-24'; // Fixed width for max bet
-      default:
-        return 'w-auto';
-    }
-  };
+  const sortIndicator = (key: string) =>
+    sortConfig?.key === key ? (sortConfig.direction === 'asc' ? ' ↑' : ' ↓') : '';
 
   return (
     <div className="bg-white rounded-lg overflow-hidden">
-      {/* Fixed Table Header */}
-      <div className="sticky top-0 z-50 bg-gray-100">
-        <div className="grid grid-cols-5 gap-0">
+      {/* Desktop / tablet table */}
+      <div className="hidden md:block">
+        <div className="sticky top-0 z-50 bg-gray-100 grid grid-cols-[2fr_2fr_1fr_1fr_1fr]">
           {columns.map((column) => {
-            const alignment = getColumnAlignment(column.accessor);
-            const width = getColumnWidth(column.accessor);
-            console.log(`Column ${column.header} (${column.accessor}): ${alignment}`);
+            const alignment = MONEY_ACCESSORS.includes(column.accessor) ? 'right' : 'left';
             return (
               <div
                 key={column.accessor}
-                className={`px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 bg-gray-100 ${width}`}
+                className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200"
                 style={{ textAlign: alignment }}
                 onClick={() => requestSort(column.accessor)}
               >
                 {column.header}
-                {sortConfig?.key === column.accessor && (
-                  <span className="ml-1">
-                    {sortConfig.direction === 'asc' ? '↑' : '↓'}
-                  </span>
-                )}
+                {sortIndicator(column.accessor)}
               </div>
             );
           })}
         </div>
+
+        <div className="h-96 overflow-y-auto">
+          {sortedData.map((standing) => (
+            <div
+              key={standing.id}
+              className="grid grid-cols-[2fr_2fr_1fr_1fr_1fr] hover:bg-gray-50 border-b border-gray-200"
+            >
+              {columns.map((column) => {
+                const alignment = MONEY_ACCESSORS.includes(column.accessor) ? 'right' : 'left';
+                const value = getNestedValue(standing, column.accessor);
+                return (
+                  <div
+                    key={column.accessor}
+                    className="px-4 py-4 truncate"
+                    style={{ textAlign: alignment }}
+                  >
+                    {column.accessor === 'user.displayName' ? (
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="truncate">{standing.user.displayName}</span>
+                        {standing.user.favoriteTeam?.logo && (
+                          <Image
+                            src={standing.user.favoriteTeam.logo}
+                            alt={`${standing.user.favoriteTeam.name} logo`}
+                            width={20}
+                            height={20}
+                            className="rounded-full shrink-0"
+                          />
+                        )}
+                      </div>
+                    ) : typeof value === 'number' ? (
+                      formatMoney(value)
+                    ) : (
+                      String(value ?? '')
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Scrollable Table Body */}
-      <div className="overflow-x-auto h-96 overflow-y-auto">
-        {sortedData.map((standing) => (
-          <div key={standing.id} className="grid grid-cols-5 gap-0 hover:bg-gray-50 border-b border-gray-200">
-            {columns.map((column) => {
-              const alignment = getColumnAlignment(column.accessor);
-              const width = getColumnWidth(column.accessor);
-              return (
-                <div key={column.accessor} className={`px-6 py-4 whitespace-nowrap ${width}`} style={{ textAlign: alignment }}>
-                  {formatValue(
-                    getNestedValue(standing, column.accessor),
-                    column.accessor,
-                    standing
-                  )}
+      {/* Mobile card list */}
+      <div className="md:hidden">
+        <div className="flex gap-1 overflow-x-auto px-3 py-2 bg-gray-100 text-xs font-medium text-gray-500 uppercase tracking-wider">
+          {columns.map((column) => (
+            <button
+              key={column.accessor}
+              onClick={() => requestSort(column.accessor)}
+              className={`whitespace-nowrap px-2 py-1 rounded ${
+                sortConfig?.key === column.accessor
+                  ? 'bg-gray-300 text-gray-700'
+                  : 'hover:bg-gray-200'
+              }`}
+            >
+              {column.header}
+              {sortIndicator(column.accessor)}
+            </button>
+          ))}
+        </div>
+
+        <div className="divide-y divide-gray-200">
+          {sortedData.map((standing) => (
+            <div key={standing.id} className="flex items-center justify-between gap-3 px-4 py-3">
+              <div className="flex items-center gap-2 min-w-0">
+                {standing.user.favoriteTeam?.logo && (
+                  <Image
+                    src={standing.user.favoriteTeam.logo}
+                    alt={`${standing.user.favoriteTeam.name} logo`}
+                    width={24}
+                    height={24}
+                    className="rounded-full shrink-0"
+                  />
+                )}
+                <div className="min-w-0">
+                  <div className="font-semibold text-gray-900 truncate">
+                    {standing.user.displayName}
+                  </div>
+                  <div className="text-xs text-gray-500 truncate">{standing.league.name}</div>
                 </div>
-              );
-            })}
-          </div>
-        ))}
+              </div>
+              <div className="text-right shrink-0">
+                <div className="font-semibold text-gray-900">{formatMoney(standing.balance)}</div>
+                <div className="text-xs text-gray-500 whitespace-nowrap">
+                  Min {formatMoney(standing.minBet)} / Max {formatMoney(standing.maxBet)}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
-} 
+}
