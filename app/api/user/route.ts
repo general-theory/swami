@@ -1,6 +1,6 @@
 import { auth } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
-import { createUser, getUserByClerkId } from '../../lib/db/user';
+import { createUser, getUserByClerkId, getUserByEmail, updateUserClerkId } from '../../lib/db/user';
 import { getCommissionerLeagueIds } from '../../lib/db/commissioners';
 import { prisma } from '../../lib/db/prisma';
 
@@ -53,11 +53,23 @@ export async function POST() {
     }
 
     const userData = await response.json();
+    const email = userData.email_addresses[0].email_address;
+
+    // The Clerk userId can change (e.g. migrating to a different Clerk
+    // instance/plan) even though the person is the same. If we already have
+    // a user with this email, re-point it at the new clerkId instead of
+    // trying to create a duplicate, which would violate the unique
+    // constraint on email.
+    const existingByEmail = await getUserByEmail(email);
+    if (existingByEmail) {
+      const updatedUser = await updateUserClerkId(existingByEmail.id, userId);
+      return NextResponse.json(updatedUser);
+    }
 
     // Create new user
     const newUser = await createUser(
       userId,
-      userData.email_addresses[0].email_address,
+      email,
       userData.first_name || '',
       userData.last_name || ''
     );

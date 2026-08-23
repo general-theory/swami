@@ -34,4 +34,19 @@ export async function getUserByClerkId(clerkId: string) {
       clerkId,
     },
   });
+}
+
+export async function getUserByEmail(email: string) {
+  return prisma.user.findUnique({
+    where: {
+      email,
+    },
+  });
+}
+
+export async function updateUserClerkId(userId: number, clerkId: string): Promise<User> {
+  return prisma.user.update({
+    where: { id: userId },
+    data: { clerkId },
+  });
 } 
