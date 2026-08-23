@@ -146,7 +146,14 @@ export default function Navbar() {
             >
               Rules
             </Link>
-            
+
+            <Link
+              href="/privacy"
+              className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 font-medium"
+            >
+              Privacy
+            </Link>
+
             <ThemeToggle />
             
             {isSignedIn ? (
@@ -253,14 +260,22 @@ export default function Navbar() {
                 </>
               )}
               
-              <Link 
-                href="/rules" 
+              <Link
+                href="/rules"
                 className="block px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 font-medium"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Rules
               </Link>
-              
+
+              <Link
+                href="/privacy"
+                className="block px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 font-medium"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Privacy
+              </Link>
+
               <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
                 {isSignedIn ? (
                   <SignOutButton>
