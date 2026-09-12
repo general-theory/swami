@@ -25,9 +25,19 @@ export async function POST(request: Request) {
       return new NextResponse('Week number is required and must be a number', { status: 400 });
     }
 
-    // First, find the Week table's id based on the week number
+    // Get the active season
+    const activeSeason = await prisma.season.findFirst({
+      where: { active: true },
+      select: { id: true },
+    });
+
+    if (!activeSeason) {
+      return new NextResponse('No active season found', { status: 404 });
+    }
+
+    // Find the Week table's id based on the week number, scoped to the active season
     const week = await prisma.week.findFirst({
-      where: { week: weekNumber },
+      where: { week: weekNumber, seasonId: activeSeason.id },
       select: { id: true }
     });
 

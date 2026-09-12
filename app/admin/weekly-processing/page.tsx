@@ -308,21 +308,21 @@ export default function WeeklyProcessing() {
   };
 
   return (
-    <div className="container mx-auto p-8">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+    <div className="container mx-auto p-4 sm:p-8">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-2">
           Weekly Processing
         </h1>
-        <p className="text-lg text-gray-600 dark:text-gray-300">
+        <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300">
           Process completed games and update results for the current week
         </p>
       </div>
 
-      <div className="grid gap-6">
+      <div className="grid gap-4 sm:gap-6">
         {/* Active Week Info */}
         <Card className="bg-white dark:bg-slate-800 border-0 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white">
+            <CardTitle className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
               Current Active Week
             </CardTitle>
           </CardHeader>
@@ -353,7 +353,7 @@ export default function WeeklyProcessing() {
         {/* Pick Active Games Card */}
         <Card className="bg-white dark:bg-slate-800 border-0 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white">
+            <CardTitle className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
               Pick Active Games
             </CardTitle>
           </CardHeader>
@@ -361,15 +361,15 @@ export default function WeeklyProcessing() {
             <p className="text-gray-600 dark:text-gray-300">
               Select up to 16 games for Week {activeWeek?.week || 'N/A'} that players can wager on:
             </p>
-            
-            <div className="flex justify-between items-center mb-4">
+
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
               <div className="text-sm text-gray-600 dark:text-gray-300">
                 {selectedGames.size} of 16 games selected
               </div>
               <Button
                 onClick={updateActiveGames}
                 disabled={updatingActiveGames || selectedGames.size === 0}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                 size="sm"
               >
                 {updatingActiveGames ? (
@@ -385,82 +385,135 @@ export default function WeeklyProcessing() {
                 )}
               </Button>
             </div>
-            
+
             {loadingGames ? (
               <div className="flex justify-center py-8">
                 <div className="loading loading-spinner loading-lg"></div>
               </div>
             ) : gamesForSelection.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full table-auto">
-                  <thead>
-                    <tr className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white">
-                      <th className="px-4 py-2 text-left w-12">Select</th>
-                      <th className="px-4 py-2 text-left">Visit Team</th>
-                      <th className="px-4 py-2 text-center">Spread</th>
-                      <th className="px-4 py-2 text-left">Home Team</th>
-                      <th className="px-4 py-2 text-center">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {gamesForSelection.map((game) => (
-                      <tr 
-                        key={game.id} 
-                        className={`border-b border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 ${
-                          selectedGames.has(game.id) ? 'bg-blue-50 dark:bg-blue-900/20' : ''
-                        }`}
-                        onClick={() => handleGameSelection(game.id)}
-                      >
-                        <td className="px-4 py-2">
-                          <input
-                            type="checkbox"
-                            checked={selectedGames.has(game.id)}
-                            onChange={() => handleGameSelection(game.id)}
-                            className="h-4 w-4 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-500"
-                          />
-                        </td>
-                        <td className="px-4 py-2 text-gray-900 dark:text-white font-medium">
-                          {game.awayTeam.rank && (
-                            <span className="font-bold text-blue-600 dark:text-blue-400 mr-2">#{game.awayTeam.rank}</span>
-                          )}
-                          {game.awayTeam.name}
-                        </td>
-                        <td className="px-4 py-2 text-center text-gray-900 dark:text-white">
-                          {game.spread !== null ? (game.spread >= 0 ? `+${game.spread}` : game.spread.toString()) : 'N/A'}
-                        </td>
-                        <td className="px-4 py-2 text-gray-900 dark:text-white font-medium">
-                          {game.homeTeam.rank && (
-                            <span className="font-bold text-blue-600 dark:text-blue-400 mr-2">#{game.homeTeam.rank}</span>
-                          )}
-                          {game.homeTeam.name}
-                        </td>
-                        <td className="px-4 py-2 text-center">
-                          <span className={`inline-block px-2 py-1 text-xs font-semibold rounded ${
-                            game.active 
-                              ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' 
-                              : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
-                          }`}>
-                            {game.active ? 'Active' : 'Inactive'}
-                          </span>
-                        </td>
+              <>
+                {/* Card list - mobile */}
+                <div className="sm:hidden space-y-2">
+                  {gamesForSelection.map((game) => (
+                    <div
+                      key={game.id}
+                      onClick={() => handleGameSelection(game.id)}
+                      className={`rounded-lg border border-gray-200 dark:border-gray-600 p-3 cursor-pointer ${
+                        selectedGames.has(game.id) ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-white dark:bg-slate-800'
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedGames.has(game.id)}
+                          onChange={() => handleGameSelection(game.id)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="h-5 w-5 mt-1 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-500 flex-shrink-0"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="text-gray-900 dark:text-white font-medium truncate">
+                              {game.awayTeam.rank && (
+                                <span className="font-bold text-blue-600 dark:text-blue-400 mr-1">#{game.awayTeam.rank}</span>
+                              )}
+                              {game.awayTeam.name}
+                            </div>
+                            <span className={`flex-shrink-0 inline-block px-2 py-0.5 text-xs font-semibold rounded ${
+                              game.active
+                                ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                                : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                            }`}>
+                              {game.active ? 'Active' : 'Inactive'}
+                            </span>
+                          </div>
+                          <div className="text-gray-900 dark:text-white font-medium truncate">
+                            {game.homeTeam.rank && (
+                              <span className="font-bold text-blue-600 dark:text-blue-400 mr-1">#{game.homeTeam.rank}</span>
+                            )}
+                            {game.homeTeam.name}
+                          </div>
+                          <div className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                            Spread: {game.spread !== null ? (game.spread >= 0 ? `+${game.spread}` : game.spread.toString()) : 'N/A'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Table - sm and up */}
+                <div className="hidden sm:block overflow-x-auto">
+                  <table className="w-full table-auto">
+                    <thead>
+                      <tr className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white">
+                        <th className="px-4 py-2 text-left w-12">Select</th>
+                        <th className="px-4 py-2 text-left">Visit Team</th>
+                        <th className="px-4 py-2 text-center">Spread</th>
+                        <th className="px-4 py-2 text-left">Home Team</th>
+                        <th className="px-4 py-2 text-center">Status</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {gamesForSelection.map((game) => (
+                        <tr
+                          key={game.id}
+                          className={`border-b border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 ${
+                            selectedGames.has(game.id) ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                          }`}
+                          onClick={() => handleGameSelection(game.id)}
+                        >
+                          <td className="px-4 py-2">
+                            <input
+                              type="checkbox"
+                              checked={selectedGames.has(game.id)}
+                              onChange={() => handleGameSelection(game.id)}
+                              className="h-4 w-4 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-500"
+                            />
+                          </td>
+                          <td className="px-4 py-2 text-gray-900 dark:text-white font-medium">
+                            {game.awayTeam.rank && (
+                              <span className="font-bold text-blue-600 dark:text-blue-400 mr-2">#{game.awayTeam.rank}</span>
+                            )}
+                            {game.awayTeam.name}
+                          </td>
+                          <td className="px-4 py-2 text-center text-gray-900 dark:text-white">
+                            {game.spread !== null ? (game.spread >= 0 ? `+${game.spread}` : game.spread.toString()) : 'N/A'}
+                          </td>
+                          <td className="px-4 py-2 text-gray-900 dark:text-white font-medium">
+                            {game.homeTeam.rank && (
+                              <span className="font-bold text-blue-600 dark:text-blue-400 mr-2">#{game.homeTeam.rank}</span>
+                            )}
+                            {game.homeTeam.name}
+                          </td>
+                          <td className="px-4 py-2 text-center">
+                            <span className={`inline-block px-2 py-1 text-xs font-semibold rounded ${
+                              game.active
+                                ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                                : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                            }`}>
+                              {game.active ? 'Active' : 'Inactive'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             ) : (
               <div className="text-center py-8 text-gray-600 dark:text-gray-300">
                 <div className="text-4xl mb-2">📋</div>
                 <p>No games found for this week.</p>
               </div>
             )}
-            
+
             <div className="pt-4">
               <Button
                 onClick={fetchGamesForSelection}
                 disabled={loadingGames}
                 variant="outline"
                 size="sm"
+                className="w-full sm:w-auto"
               >
                 {loadingGames ? (
                   <>
@@ -481,7 +534,7 @@ export default function WeeklyProcessing() {
         {/* Process Default Bets Card */}
         <Card className="bg-white dark:bg-slate-800 border-0 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white">
+            <CardTitle className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
               Process Default Bets
             </CardTitle>
           </CardHeader>
@@ -489,17 +542,17 @@ export default function WeeklyProcessing() {
             <p className="text-gray-600 dark:text-gray-300">
               Players who have not met their minimum bet requirement for Week {activeWeek?.week || 'N/A'}:
             </p>
-            
+
             {defaultBetsData.length > 0 && (
-              <div className="flex justify-between items-center mb-4">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
                 <div className="text-sm text-gray-600 dark:text-gray-300">
                   {defaultBetsData.length} player(s) need reminders
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Button
                     onClick={addDefaultBets}
                     disabled={addingDefaultBets}
-                    className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
+                    className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
                     size="sm"
                   >
                     {addingDefaultBets ? (
@@ -517,7 +570,7 @@ export default function WeeklyProcessing() {
                   <Button
                     onClick={sendEmailReminders}
                     disabled={sendingReminders}
-                    className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700"
+                    className="w-full sm:w-auto bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700"
                     size="sm"
                   >
                     {sendingReminders ? (
@@ -535,51 +588,87 @@ export default function WeeklyProcessing() {
                 </div>
               </div>
             )}
-            
+
             {loadingDefaultBets ? (
               <div className="flex justify-center py-8">
                 <div className="loading loading-spinner loading-lg"></div>
               </div>
             ) : defaultBetsData.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full table-auto">
-                  <thead>
-                    <tr className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white">
-                      <th className="px-4 py-2 text-left">Player</th>
-                      <th className="px-4 py-2 text-left">League</th>
-                      <th className="px-4 py-2 text-right">Balance</th>
-                      <th className="px-4 py-2 text-right">Min Bet</th>
-                      <th className="px-4 py-2 text-right">Current Total</th>
-                      <th className="px-4 py-2 text-right">Shortfall</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {defaultBetsData.map((player) => (
-                      <tr key={`${player.userId}-${player.leagueId}`} className="border-b border-gray-200 dark:border-gray-600">
-                        <td className="px-4 py-2 text-gray-900 dark:text-white">{player.userName}</td>
-                        <td className="px-4 py-2 text-gray-900 dark:text-white">{player.leagueName}</td>
-                        <td className="px-4 py-2 text-right text-gray-900 dark:text-white">${player.balance}</td>
-                        <td className="px-4 py-2 text-right text-gray-900 dark:text-white">${player.minBet}</td>
-                        <td className="px-4 py-2 text-right text-gray-900 dark:text-white">${player.currentBetTotal}</td>
-                        <td className="px-4 py-2 text-right font-semibold text-red-600 dark:text-red-400">${player.shortfall}</td>
+              <>
+                {/* Card list - mobile */}
+                <div className="sm:hidden space-y-2">
+                  {defaultBetsData.map((player) => (
+                    <div
+                      key={`${player.userId}-${player.leagueId}`}
+                      className="rounded-lg border border-gray-200 dark:border-gray-600 p-3"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="text-gray-900 dark:text-white font-medium">{player.userName}</div>
+                        <div className="text-sm font-semibold text-red-600 dark:text-red-400">
+                          -${player.shortfall} short
+                        </div>
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-300">{player.leagueName}</div>
+                      <div className="mt-2 grid grid-cols-3 gap-2 text-sm">
+                        <div>
+                          <div className="text-gray-500 dark:text-gray-400">Balance</div>
+                          <div className="text-gray-900 dark:text-white">${player.balance}</div>
+                        </div>
+                        <div>
+                          <div className="text-gray-500 dark:text-gray-400">Min Bet</div>
+                          <div className="text-gray-900 dark:text-white">${player.minBet}</div>
+                        </div>
+                        <div>
+                          <div className="text-gray-500 dark:text-gray-400">Current</div>
+                          <div className="text-gray-900 dark:text-white">${player.currentBetTotal}</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Table - sm and up */}
+                <div className="hidden sm:block overflow-x-auto">
+                  <table className="w-full table-auto">
+                    <thead>
+                      <tr className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white">
+                        <th className="px-4 py-2 text-left">Player</th>
+                        <th className="px-4 py-2 text-left">League</th>
+                        <th className="px-4 py-2 text-right">Balance</th>
+                        <th className="px-4 py-2 text-right">Min Bet</th>
+                        <th className="px-4 py-2 text-right">Current Total</th>
+                        <th className="px-4 py-2 text-right">Shortfall</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {defaultBetsData.map((player) => (
+                        <tr key={`${player.userId}-${player.leagueId}`} className="border-b border-gray-200 dark:border-gray-600">
+                          <td className="px-4 py-2 text-gray-900 dark:text-white">{player.userName}</td>
+                          <td className="px-4 py-2 text-gray-900 dark:text-white">{player.leagueName}</td>
+                          <td className="px-4 py-2 text-right text-gray-900 dark:text-white">${player.balance}</td>
+                          <td className="px-4 py-2 text-right text-gray-900 dark:text-white">${player.minBet}</td>
+                          <td className="px-4 py-2 text-right text-gray-900 dark:text-white">${player.currentBetTotal}</td>
+                          <td className="px-4 py-2 text-right font-semibold text-red-600 dark:text-red-400">${player.shortfall}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             ) : (
               <div className="text-center py-8 text-gray-600 dark:text-gray-300">
                 <div className="text-4xl mb-2">✅</div>
                 <p>All players have met their minimum bet requirements!</p>
               </div>
             )}
-            
+
             <div className="pt-4">
               <Button
                 onClick={fetchDefaultBetsData}
                 disabled={loadingDefaultBets}
                 variant="outline"
                 size="sm"
+                className="w-full sm:w-auto"
               >
                 {loadingDefaultBets ? (
                   <>
@@ -600,13 +689,13 @@ export default function WeeklyProcessing() {
         {/* Process Games Card */}
         <Card className="bg-white dark:bg-slate-800 border-0 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white">
+            <CardTitle className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
               Process Completed Games
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-gray-600 dark:text-gray-300">
-              This will run the stored procedure to update game results for Week {activeWeek?.week || 'N/A'}. 
+              This will run the stored procedure to update game results for Week {activeWeek?.week || 'N/A'}.
               This process will:
             </p>
             <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-300 ml-4">
@@ -615,12 +704,12 @@ export default function WeeklyProcessing() {
               <li>Determine winning teams</li>
               <li>Update wager results and balance impacts</li>
             </ul>
-            
+
             <div className="pt-4">
               <Button
                 onClick={processCompletedGames}
                 disabled={loading || !activeWeek}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                 size="lg"
               >
                 {loading ? (
@@ -642,7 +731,7 @@ export default function WeeklyProcessing() {
         {/* Instructions Card */}
         <Card className="bg-white dark:bg-slate-800 border-0 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white">
+            <CardTitle className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
               Instructions
             </CardTitle>
           </CardHeader>
