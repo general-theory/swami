@@ -280,11 +280,15 @@ function AllTimeView({ data }: { data: AllTimeData }) {
   );
 }
 
+function weekLabel(week: number): string {
+  return week === 0 ? 'Start' : String(week);
+}
+
 function BalanceLineChart({ weeklyBalances }: { weeklyBalances: WeeklyBalance[] }) {
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [showTable, setShowTable] = useState(false);
 
-  if (weeklyBalances.length === 0) {
+  if (weeklyBalances.length <= 1) {
     return <p className="text-sm text-gray-500">No completed weeks yet this season.</p>;
   }
 
@@ -326,7 +330,7 @@ function BalanceLineChart({ weeklyBalances }: { weeklyBalances: WeeklyBalance[] 
           <thead><tr><th>Week</th><th className="text-right">Balance</th></tr></thead>
           <tbody>
             {weeklyBalances.map(w => (
-              <tr key={w.week}><td>{w.week}</td><td className="text-right">${w.balance.toLocaleString()}</td></tr>
+              <tr key={w.week}><td>{weekLabel(w.week)}</td><td className="text-right">${w.balance.toLocaleString()}</td></tr>
             ))}
           </tbody>
         </table>
@@ -367,7 +371,7 @@ function BalanceLineChart({ weeklyBalances }: { weeklyBalances: WeeklyBalance[] 
 
             {weeklyBalances.map((w, i) => (
               <text key={w.week} x={xForIndex(i)} y={height - padding.bottom + 18} textAnchor="middle" fontSize={11} fill="var(--text-muted)">
-                {w.week}
+                {weekLabel(w.week)}
               </text>
             ))}
 
@@ -395,7 +399,9 @@ function BalanceLineChart({ weeklyBalances }: { weeklyBalances: WeeklyBalance[] 
               }}
             >
               <div className="font-semibold">${weeklyBalances[hoverIndex].balance.toLocaleString()}</div>
-              <div className="text-gray-500">Week {weeklyBalances[hoverIndex].week}</div>
+              <div className="text-gray-500">
+                {weeklyBalances[hoverIndex].week === 0 ? 'Start' : `Week ${weeklyBalances[hoverIndex].week}`}
+              </div>
             </div>
           )}
         </div>

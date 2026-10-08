@@ -152,10 +152,13 @@ export async function GET(request: Request) {
     });
 
     let cumulative = 1000;
-    const weeklyBalances = weeks.map((w) => {
-      cumulative += impactByWeekNumber.get(w.week) ?? 0;
-      return { week: w.week, balance: cumulative };
-    });
+    const weeklyBalances = [
+      { week: 0, balance: cumulative },
+      ...weeks.map((w) => {
+        cumulative += impactByWeekNumber.get(w.week) ?? 0;
+        return { week: w.week, balance: cumulative };
+      }),
+    ];
 
     return NextResponse.json({
       mode: 'season',

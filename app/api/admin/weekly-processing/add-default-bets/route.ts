@@ -107,6 +107,7 @@ export async function POST() {
       where: {
         seasonId: activeSeason.id,
         isLock: false,
+        active: true,
       },
       include: {
         user: {

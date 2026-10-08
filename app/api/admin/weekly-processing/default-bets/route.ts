@@ -89,6 +89,7 @@ export async function GET() {
       where: {
         seasonId: activeSeason.id,
         isLock: false,
+        active: true,
       },
       include: {
         user: {
